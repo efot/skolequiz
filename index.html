@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>10. klasse – 10 minutter om dagen</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+    --accent:#315f9b; --accent2:#e8f0fb; --ok:#15803d; --bad:#b91c1c;
+    --line:#d8dee9; --warn:#9a6700;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:900px;margin:auto;padding:18px}
+  .hero{background:linear-gradient(135deg,#284f83,#3f73b4);color:white;border-radius:22px;padding:24px;margin:8px 0 18px;box-shadow:0 8px 28px #0002}
+  .hero h1{margin:0 0 8px;font-size:clamp(26px,5vw,42px)}
+  .hero p{margin:6px 0;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
+  .card h2,.card h3{margin-top:0}
+  button,.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--accent);color:white}
+  button.secondary{background:#eef2f7;color:#263445;border:1px solid var(--line)}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .subject{display:inline-block;background:var(--accent2);color:#244e82;padding:6px 10px;border-radius:999px;font-weight:800;font-size:13px}
+  .progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .question{font-size:20px;font-weight:800;line-height:1.35;margin:12px 0 14px}
+  .answers{display:grid;gap:10px}
+  .answer{width:100%;text-align:left;background:#fff;color:var(--text);border:2px solid var(--line);font-weight:600}
+  .answer:hover{border-color:#8aa9d0}
+  .answer.selected{border-color:var(--accent);background:var(--accent2)}
+  .answer.correct{border-color:#65a30d;background:#f0fdf4}
+  .answer.wrong{border-color:#dc2626;background:#fef2f2}
+  .explain{margin-top:14px;border-left:4px solid var(--accent);background:#f8fafc;padding:12px 14px;border-radius:8px;line-height:1.45}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .hidden{display:none!important}
+  .small{font-size:14px;color:var(--muted);line-height:1.45}
+  .scoreBig{font-size:54px;font-weight:900;color:var(--accent);line-height:1}
+  .review{margin:14px 0;padding:14px;border-radius:14px;border:1px solid var(--line);background:#fff}
+  .review.ok{border-left:5px solid var(--ok)}
+  .review.bad{border-left:5px solid var(--bad)}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}
+  .pill.ok{background:#dcfce7;color:#166534}.pill.bad{background:#fee2e2;color:#991b1b}
+  .notice{background:#fff7ed;border:1px solid #fed7aa;color:#8a4b08;border-radius:14px;padding:13px;line-height:1.45}
+  footer{color:var(--muted);font-size:12px;margin:22px 4px 10px;line-height:1.5}
+  @media (max-width:600px){.wrap{padding:12px}.hero{padding:20px}.question{font-size:18px}.answer{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>10. klasse – 10 minutter om dagen</h1>
+    <p>Datostyrte 10-minuttersøkter innen temaene for uke 35–40. Mandag–torsdag lærer du nytt stoff, og fredag repeterer du ukens temaer.</p>
+    <p><strong>Trening:</strong> 10 spørsmål med forklaring etter hvert svar. <strong>Prøve:</strong> 25 spørsmål, ett forsøk på denne enheten.</p>
+  </section>
+
+  <section id="home">
+    <div class="grid">
+      <div class="card">
+        <h2>📚 Dagens 10-minuttersøkt</h2>
+        <p id="todayLabel"><strong>Dagens plan</strong></p>
+        <p id="todayDescription">10 spørsmål tilpasset dagens dato.</p>
+        <button onclick="startPractice()">Start dagens økt</button>
+        <p class="small" id="practiceInfo"></p>
+      </div>
+      <div class="card">
+        <h2>📝 Oppsummerende prøve</h2>
+        <p>25 spørsmål. Ingen fasit vises før prøven er levert. Resultatet lagres på denne enheten.</p>
+        <button id="testStartBtn" onclick="confirmStartTest()">Start prøven</button>
+        <p class="small" id="testStatus"></p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Temaer i appen</h3>
+      <div class="grid">
+        <div><span class="subject">Norsk</span><p>Nynorsk: substantiv og verb.</p></div>
+        <div><span class="subject">Engelsk</span><p>Role models, India og Gandhi, Sør-Afrika og Mandela, samt refleksjon rundt rollemodeller.</p></div>
+        <div><span class="subject">Matte</span><p>Tall og algebra.</p></div>
+        <div><span class="subject">Naturfag</span><p>Mangfold i naturen, observasjon og feltarbeid.</p></div>
+        <div><span class="subject">Samfunnsfag</span><p>Andre verdenskrig i Norge og Espeland fangeleir.</p></div>
+        <div><span class="subject">KRLE</span><p>Etikk, valg, identitet, konsekvensetikk, pliktetikk, moralske holdninger og ansvarsetikk.</p></div>
+        <div><span class="subject">Musikk</span><p>Samspill og det å spille i band.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <span class="subject" id="qSubject"></span>
+        <strong id="qCounter"></strong>
+      </div>
+      <div class="progress"><div id="bar"></div></div>
+      <div class="question" id="qText"></div>
+      <div class="answers" id="answers"></div>
+      <div id="explanation" class="explain hidden"></div>
+      <div class="toolbar">
+        <button id="nextBtn" class="hidden" onclick="nextQuestion()">Neste</button>
+        <button class="secondary" id="quitBtn" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="card">
+      <span class="subject" id="resultLabel">Resultat</span>
+      <h2 id="resultTitle"></h2>
+      <div class="scoreBig" id="scoreBig"></div>
+      <p id="scoreText"></p>
+      <div id="resultMessage" class="notice"></div>
+      <div class="toolbar">
+        <button id="shareBtn" class="hidden" onclick="shareResult()">Del resultat</button>
+        <button id="copyBtn" class="hidden" onclick="copyResult()">Kopier til SMS</button>
+        <button class="secondary" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+    <div id="reviewWrap"></div>
+  </section>
+
+  <footer>
+    Appen bruker nettleserens lokale lagring for prøveresultat og tidligere feil. Dagens økt styres av datoen på enheten. Ett-forsøk-regelen for prøven gjelder på denne enheten/nettleseren.
+  </footer>
+</div>
+
+<script>
+const Q = [
+/* NORSK */
+{subject:"Norsk",q:"Hvilket av disse er et substantiv?",a:["springe","skule","raskt","å vere"],c:1,e:"«Skule» er et substantiv fordi det er navnet på noe. «Springe» og «vere» er verb."},
+{subject:"Norsk",q:"Hvilket ord er et verb?",a:["jente","bok","skriv","raud"],c:2,e:"«Skriv» uttrykker en handling og er derfor et verb."},
+{subject:"Norsk",q:"Hva er infinitivsmerket på nynorsk?",a:["å","og","til","for"],c:0,e:"Infinitiv står ofte med «å», for eksempel «å skrive»."},
+{subject:"Norsk",q:"Hvilken form er korrekt nynorsk?",a:["jeg skriver","eg skriv","jeg skriv","eg skriver"],c:1,e:"På nynorsk heter det «eg skriv»."},
+{subject:"Norsk",q:"Hvilket substantiv står i bestemt form entall?",a:["ein bil","bilen","bilar","bilane"],c:1,e:"«Bilen» er bestemt form entall."},
+{subject:"Norsk",q:"Hvilket ord står i flertall?",a:["jenta","ei jente","jenter","jenta mi"],c:2,e:"«Jenter» er flertall."},
+{subject:"Norsk",q:"Hva er presens av «å vere» på nynorsk?",a:["var","vore","er","vere"],c:2,e:"Presens av «å vere» er «er»."},
+{subject:"Norsk",q:"Hva er preteritum av «å vere»?",a:["er","var","vore","vert"],c:1,e:"Preteritum er «var»."},
+{subject:"Norsk",q:"Hvilken setning er nynorsk?",a:["Hun kommer senere.","Ho kjem seinare.","Hun kjem senere.","Ho kommer senere."],c:1,e:"«Ho kjem seinare» bruker nynorske former."},
+{subject:"Norsk",q:"Hva forteller et verb vanligvis?",a:["Hvem noe tilhører","En handling eller tilstand","Bare navn på personer","Bare antall"],c:1,e:"Verb uttrykker handlinger eller tilstander, som «spring», «tenkjer» og «er»."},
+
+/* ENGELSK */
+{subject:"Engelsk",q:"What is a role model?",a:["Someone you can learn from and look up to","Only a famous actor","Someone who always agrees with you","A person with the most followers"],c:0,e:"A role model is someone whose actions or qualities can inspire or guide others."},
+{subject:"Engelsk",q:"Which quality is most closely linked to a positive role model?",a:["Dishonesty","Responsibility","Bullying","Selfishness"],c:1,e:"Responsibility is a common quality associated with positive role models."},
+{subject:"Engelsk",q:"Mahatma Gandhi is especially associated with which country?",a:["India","Canada","Brazil","Japan"],c:0,e:"Gandhi was a central figure in India's independence movement."},
+{subject:"Engelsk",q:"Gandhi is widely known for promoting…",a:["non-violent resistance","military rule","apartheid","colonial expansion"],c:0,e:"He became internationally known for non-violent resistance and civil disobedience."},
+{subject:"Engelsk",q:"Nelson Mandela is most closely associated with…",a:["South Africa","India","Australia","Ireland"],c:0,e:"Mandela was a South African anti-apartheid leader and later president."},
+{subject:"Engelsk",q:"What was apartheid?",a:["A music style","A system of racial segregation in South Africa","A type of election","A school subject"],c:1,e:"Apartheid was a system of legally enforced racial segregation and discrimination."},
+{subject:"Engelsk",q:"Why is Nelson Mandela often described as a role model?",a:["He became rich","He worked against apartheid and for a democratic South Africa","He invented television","He was a famous footballer"],c:1,e:"Mandela is often highlighted for his struggle against apartheid and his role in democratic change."},
+{subject:"Engelsk",q:"Which question best helps you evaluate a role model?",a:["Are they famous?","Do their actions and values have a positive influence?","Do they own expensive things?","Are they always popular?"],c:1,e:"Role models are better judged by values, actions and influence than by fame alone."},
+{subject:"Engelsk",q:"What does the word 'qualities' mean in the question 'Which qualities make a good role model?'",a:["Prices","Personal traits or characteristics","Countries","Jobs"],c:1,e:"'Qualities' means personal characteristics, such as courage, kindness or honesty."},
+{subject:"Engelsk",q:"Which is the best example of respectful disagreement in English?",a:["You're stupid.","I see your point, but I disagree because…","Whatever.","Shut up."],c:1,e:"This phrase shows disagreement while still respecting the other person."},
+{subject:"Engelsk",q:"Which word best completes: 'Mandela fought ___ apartheid.'",a:["against","under","beside","through"],c:0,e:"The common expression is «fight against» something."},
+{subject:"Engelsk",q:"Which sentence gives an opinion and a reason?",a:["Gandhi lived in India.","I think courage matters because standing up for others can be difficult.","Mandela was born in 1918.","South Africa is a country."],c:1,e:"It clearly states an opinion and supports it with a reason."},
+
+/* MATTE */
+{subject:"Matte",q:"Hva er 3x + 5x?",a:["8","8x","15x","3x²"],c:1,e:"Like ledd kan legges sammen: 3x + 5x = 8x."},
+{subject:"Matte",q:"Løs likningen: x + 7 = 12",a:["3","5","7","19"],c:1,e:"Trekk 7 fra begge sider: x = 5."},
+{subject:"Matte",q:"Løs likningen: 4x = 20",a:["4","5","16","24"],c:1,e:"Del begge sider på 4: x = 5."},
+{subject:"Matte",q:"Hva er 2(3 + x)?",a:["6 + x","5x","6 + 2x","3 + 2x"],c:2,e:"Gang 2 med begge leddene i parentesen: 6 + 2x."},
+{subject:"Matte",q:"Hva er 5²?",a:["10","25","32","50"],c:1,e:"5² betyr 5 · 5 = 25."},
+{subject:"Matte",q:"Hva er −3 + 8?",a:["−11","−5","5","11"],c:2,e:"Fra −3 går du 8 steg mot høyre på tallinjen og ender på 5."},
+{subject:"Matte",q:"Hva er 7 − (−2)?",a:["5","9","−9","−5"],c:1,e:"Å trekke fra et negativt tall tilsvarer å legge til: 7 + 2 = 9."},
+{subject:"Matte",q:"Forenkle: 4a + 3 − a",a:["3a + 3","4a + 2","3a","5a + 3"],c:0,e:"4a − a = 3a, og konstantleddet 3 blir stående."},
+{subject:"Matte",q:"Hvis x = 3, hva er 2x + 4?",a:["7","8","10","14"],c:2,e:"Sett inn x = 3: 2·3 + 4 = 10."},
+{subject:"Matte",q:"Hvilket uttrykk betyr «tre mer enn det dobbelte av x»?",a:["2x + 3","3x + 2","2(x + 3)","x + 6"],c:0,e:"Det dobbelte av x er 2x, og tre mer gir 2x + 3."},
+{subject:"Matte",q:"Løs: 2x + 3 = 11",a:["3","4","5","7"],c:1,e:"2x = 8, derfor x = 4."},
+{subject:"Matte",q:"Hva er 1/2 + 1/4?",a:["2/6","1/6","3/4","1/8"],c:2,e:"1/2 = 2/4, og 2/4 + 1/4 = 3/4."},
+
+/* NATURFAG */
+{subject:"Naturfag",q:"Hva betyr biologisk mangfold?",a:["At alle arter er like","Variasjon av arter, gener og økosystemer","Bare antall trær","Kun dyr i Norge"],c:1,e:"Biologisk mangfold handler om variasjon på flere nivåer: gener, arter og økosystemer."},
+{subject:"Naturfag",q:"Hva er en art?",a:["Organismer som vanligvis kan få fruktbart avkom sammen","Alle dyr som lever i samme skog","Alle planter med grønne blader","Et område med samme temperatur"],c:0,e:"En vanlig biologisk definisjon er organismer som kan få fruktbart avkom sammen."},
+{subject:"Naturfag",q:"Hva er et økosystem?",a:["Bare rovdyrene i et område","Samspillet mellom levende organismer og miljøet rundt","En liste over arter","Et enkelt tre"],c:1,e:"Et økosystem omfatter både levende organismer og de ikke-levende miljøfaktorene."},
+{subject:"Naturfag",q:"Hva er en produsent i en næringskjede?",a:["En plante som lager næring ved fotosyntese","Et rovdyr","En sopp som bryter ned","Et menneske som lager mat"],c:0,e:"Planter og alger er produsenter fordi de lager organisk stoff gjennom fotosyntese."},
+{subject:"Naturfag",q:"Hvorfor er det lurt å gjøre flere observasjoner i feltarbeid?",a:["For å få et mer pålitelig bilde","For å gjøre rapporten lengst mulig","Fordi én observasjon alltid er feil","Bare for å bruke mer tid"],c:0,e:"Flere observasjoner reduserer risikoen for at tilfeldigheter bestemmer resultatet."},
+{subject:"Naturfag",q:"Hva er en abiotisk faktor?",a:["Temperatur","Et tre","En rev","En bakterie"],c:0,e:"Abiotiske faktorer er ikke-levende forhold, for eksempel temperatur, lys og vann."},
+{subject:"Naturfag",q:"Hva er en biotisk faktor?",a:["Sollys","pH","En konkurrentart","Temperatur"],c:2,e:"Biotiske faktorer er levende organismer eller påvirkning fra dem."},
+{subject:"Naturfag",q:"Hva er en god feltobservasjon?",a:["«Det var fint ute»","«Vi så 12 meitemark på 1 m² fuktig jord»","«Jeg tror det var mange dyr»","«Naturen virket normal»"],c:1,e:"En god observasjon er konkret, målbar og beskriver hva som faktisk ble sett."},
+{subject:"Naturfag",q:"Hva er en mulig konsekvens når én art forsvinner fra et økosystem?",a:["Ingenting kan endre seg","Andre arter kan påvirkes gjennom næringsnett og konkurranse","Alle arter forsvinner alltid","Temperaturen blir automatisk høyere"],c:1,e:"Arter henger sammen i næringsnett og andre økologiske relasjoner."},
+{subject:"Naturfag",q:"Hvorfor bør man skille mellom observasjon og tolkning?",a:["Fordi observasjon er det du registrerer, mens tolkning er hva du mener det kan bety","Det er ingen forskjell","Tolkning er alltid mer korrekt","Observasjon brukes bare i matematikk"],c:0,e:"Å skille dem gjør det tydelig hva som faktisk ble registrert og hva som er en forklaring eller hypotese."},
+
+/* SAMFUNNSFAG */
+{subject:"Samfunnsfag",q:"Når ble Norge angrepet av Tyskland under andre verdenskrig?",a:["9. april 1940","17. mai 1945","1. september 1939","8. mai 1940"],c:0,e:"Tyskland angrep Norge 9. april 1940."},
+{subject:"Samfunnsfag",q:"Hva betyr okkupasjon?",a:["At et land frivillig går inn i et annet","At et område blir kontrollert av en fremmed militærmakt","At et land holder valg","At grensene åpnes"],c:1,e:"Okkupasjon betyr at en fremmed makt tar kontroll over et område, vanligvis militært."},
+{subject:"Samfunnsfag",q:"Hva var motstandsbevegelsen i Norge?",a:["Nordmenn som samarbeidet om å motarbeide okkupasjonsmakten","En tysk militær avdeling","En idrettsorganisasjon","En avis"],c:0,e:"Motstandsbevegelsen besto av ulike grupper og personer som motarbeidet den tyske okkupasjonen."},
+{subject:"Samfunnsfag",q:"Når regnes frigjøringsdagen i Norge fra andre verdenskrig?",a:["8. mai 1945","9. april 1940","7. juni 1905","1. mai 1945"],c:0,e:"8. mai 1945 markeres som frigjøringsdagen i Norge."},
+{subject:"Samfunnsfag",q:"Hva var Espeland fangeleir først og fremst brukt til under krigen?",a:["Fornøyelsespark","Fangeleir under den tyske okkupasjonen","Skole","Sykehus"],c:1,e:"Espeland fangeleir ved Bergen ble brukt som fangeleir under den tyske okkupasjonen."},
+{subject:"Samfunnsfag",q:"Hvorfor er lokale steder som Espeland fangeleir viktige historiske kilder?",a:["De gjør historien konkret og viser hvordan krigen rammet lokalsamfunnet","De beviser at hele krigen skjedde i Bergen","De erstatter alle skriftlige kilder","De er bare viktige for turister"],c:0,e:"Lokale spor kan knytte større historiske hendelser til mennesker og steder i nærmiljøet."},
+{subject:"Samfunnsfag",q:"Hva er en primærkilde?",a:["En kilde laget nær hendelsen av noen som opplevde eller dokumenterte den","En moderne lærebok","En tilfeldig nettside","En film basert på en roman"],c:0,e:"Primærkilder kommer direkte fra eller tett på hendelsen, for eksempel brev, bilder, dagbøker eller samtidige dokumenter."},
+{subject:"Samfunnsfag",q:"Hvorfor bør historiske kilder vurderes kritisk?",a:["Fordi alle kilder alltid lyver","Fordi kilder kan ha ulike perspektiver, formål og begrensninger","Fordi gamle kilder ikke kan brukes","Fordi bare lærebøker er sanne"],c:1,e:"Kildekritikk handler blant annet om hvem som laget kilden, når, hvorfor og hvor troverdig den er."},
+{subject:"Samfunnsfag",q:"Hva var en viktig konsekvens av okkupasjonen for mange nordmenn?",a:["Friheten ble begrenset og samfunnet ble kontrollert av okkupasjonsmakten","Alle fikk høyere lønn","Norge fikk flere fridager","Ingen ting i hverdagen endret seg"],c:0,e:"Okkupasjonen påvirket politikk, frihet, økonomi, sikkerhet og hverdagsliv."},
+{subject:"Samfunnsfag",q:"Hva betyr «kapitulasjon» i krig?",a:["Å gi opp militær motstand","Å starte et valg","Å sende nødhjelp","Å danne en motstandsgruppe"],c:0,e:"Kapitulasjon betyr at en stridende part overgir seg eller avslutter militær motstand."},
+
+/* KRLE */
+{subject:"KRLE",q:"Hva spør konsekvensetikken først og fremst om?",a:["Hvilke konsekvenser handlingen får","Om regelen alltid er skrevet ned","Hva vennene dine synes","Om handlingen er lovlig i alle land"],c:0,e:"Konsekvensetikk vurderer en handling ut fra resultatene eller konsekvensene."},
+{subject:"KRLE",q:"Hva legger pliktetikken mest vekt på?",a:["Regler, plikter og prinsipper","Popularitet","Følelser alene","Økonomisk gevinst"],c:0,e:"Pliktetikk spør om handlingen følger moralske plikter eller prinsipper."},
+{subject:"KRLE",q:"Hva menes med moralske holdninger?",a:["Verdier og holdninger som påvirker hvordan vi vurderer rett og galt","Kun lover vedtatt av Stortinget","Måten vi kler oss på","Bare religiøse regler"],c:0,e:"Moralske holdninger er syn og verdier som påvirker hvordan vi handler og vurderer rett og galt."},
+{subject:"KRLE",q:"Hva står sentralt i ansvarsetikk?",a:["Å tenke over hvilket ansvar vi har for mennesker, samfunn og konsekvenser","Å gjøre det alle andre gjør","Å unngå alle valg","Å alltid velge det enkleste"],c:0,e:"Ansvarsetikk fremhever ansvar for andre og for følgene av det vi gjør."},
+{subject:"KRLE",q:"Hva er et etisk dilemma?",a:["Et valg der viktige verdier eller hensyn kommer i konflikt","Et spørsmål med ett åpenbart riktig svar","En matematikkoppgave","En regel uten unntak"],c:0,e:"I et etisk dilemma finnes det gjerne gode grunner på flere sider, og verdier kan kollidere."},
+{subject:"KRLE",q:"Hvilken svakhet kan konsekvensetikk ha?",a:["Det kan være vanskelig å vite alle konsekvensene på forhånd","Den bryr seg aldri om konsekvenser","Den kan bare brukes på skolen","Den krever alltid religiøs tro"],c:0,e:"Vi kan sjelden forutsi alle konsekvenser, og det kan gjøre vurderingen vanskelig."},
+{subject:"KRLE",q:"Hvilken svakhet kan pliktetikk ha?",a:["Regler kan kollidere eller bli for rigide i spesielle situasjoner","Den har ingen regler","Den handler bare om penger","Den vurderer bare hva flertallet mener"],c:0,e:"To plikter kan komme i konflikt, eller en regel kan gi et urimelig resultat i en spesiell situasjon."},
+{subject:"KRLE",q:"Du finner en mobiltelefon på skolen. Hva er et pliktetisk argument for å levere den inn?",a:["Det er en regel/prinsipp om å respektere andres eiendom","Du kan bli berømt","Du får kanskje en belønning","Alle andre gjør det"],c:0,e:"Pliktetikk kan begrunne handlingen i prinsippet om å respektere andre og deres eiendom."},
+{subject:"KRLE",q:"To venner ber deg holde en hemmelighet, men hemmeligheten handler om at noen kan bli skadet. Hvilket spørsmål er særlig relevant i ansvarsetikk?",a:["Hvem kan bli berørt, og hvilket ansvar har jeg for å hindre skade?","Hvilken farge liker jeg best?","Hva gir flest likes?","Hva er enklest for meg?"],c:0,e:"Ansvarsetikk retter oppmerksomheten mot ansvar for mennesker som kan bli berørt."},
+{subject:"KRLE",q:"Hvorfor kan identitet være relevant i etiske valg?",a:["Verdier, erfaringer og tilhørighet kan påvirke hva vi opplever som viktig","Identitet bestemmer alltid ett riktig svar","Identitet har ingen betydning for valg","Bare voksne har identitet"],c:0,e:"Identitet kan påvirke perspektiver og verdier, men betyr ikke at alle med samme identitet velger likt."},
+{subject:"KRLE",q:"Hva er en god måte å diskutere et etisk dilemma på?",a:["Vurdere flere perspektiver og begrunne standpunktet","Bare gjenta egen mening høyere","Unngå alle motargumenter","Bestemme seg før man kjenner saken"],c:0,e:"Etisk refleksjon blir bedre når man undersøker flere hensyn og begrunner vurderingen."},
+{subject:"KRLE",q:"Hvis en handling hjelper mange, men samtidig bryter en viktig regel, hva viser dette?",a:["At ulike etiske modeller kan gi ulike svar","At etikk alltid er enkelt","At regler aldri betyr noe","At konsekvenser alltid er viktigst"],c:0,e:"Konsekvensetikk og pliktetikk kan vektlegge ulike sider ved samme dilemma."},
+
+/* MUSIKK */
+{subject:"Musikk",q:"Hva er viktigst for godt samspill i et band?",a:["Å lytte til hverandre og holde felles puls","At alle spiller høyest mulig","At alle spiller solo samtidig","At tempoet endres tilfeldig"],c:0,e:"Godt samspill krever lytting, timing og at musikerne tilpasser seg hverandre."},
+{subject:"Musikk",q:"Hva betyr puls i musikk?",a:["Den jevne grunnrytmen eller 'slaget' i musikken","Hvor høy en tone er","Teksten i sangen","Hvor mange instrumenter som spiller"],c:0,e:"Pulsen er den jevne rytmiske grunnfølelsen man kan telle til."},
+{subject:"Musikk",q:"Hvorfor teller et band ofte inn før de starter?",a:["For å få felles tempo og startpunkt","For å velge instrument","For å gjøre sangen kortere","For å endre toneart"],c:0,e:"En inn-telling gjør at alle vet tempo og nøyaktig når de skal begynne."},
+{subject:"Musikk",q:"Hva gjør en bassist ofte i et band?",a:["Binder sammen rytme og harmonikk","Spiller alltid melodien alene","Bestemmer teksten","Stopper trommene"],c:0,e:"Bass har ofte en viktig rolle mellom rytmeseksjonen og akkord/harmonikk."},
+{subject:"Musikk",q:"Hva er dynamikk i musikk?",a:["Variasjon i lydstyrke og intensitet","Bare sangens hastighet","Instrumentets merke","Antall vers"],c:0,e:"Dynamikk handler blant annet om å spille sterkere eller svakere og forme intensiteten."},
+{subject:"Musikk",q:"Hvis én musiker kommer ut av takt, hva er best?",a:["Lytte etter pulsen og finne seg rolig inn igjen","Stoppe hele sangen med en gang","Spille enda raskere","Ignorere de andre"],c:0,e:"Å lytte og finne tilbake til felles puls er en viktig samspillferdighet."}
+];
+
+let mode = null, items = [], idx = 0, selected = null, score = 0, userAnswers = [];
+const $ = id => document.getElementById(id);
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+function balancedSample(total){
+  const groups = {};
+  Q.forEach(x => (groups[x.subject] ??= []).push(x));
+  const subjects = Object.keys(groups);
+  const picked=[];
+  let round=0;
+  while(picked.length<total){
+    const s=subjects[round%subjects.length];
+    const pool=groups[s].filter(x=>!picked.includes(x));
+    if(pool.length) picked.push(pool[Math.floor(Math.random()*pool.length)]);
+    round++;
+    if(round>1000) break;
+  }
+  return shuffle(picked).slice(0,total);
+}
+
+
+function getISOWeek(d){
+  var date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  var yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+function getDayName(day){
+  var names = ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"];
+  return names[day];
+}
+
+function getQuestionIndex(q){
+  for(var i=0;i<Q.length;i++){
+    if(Q[i] === q) return i;
+  }
+  return -1;
+}
+
+function getWeekMistakes(week){
+  try{
+    var raw = localStorage.getItem("practice_mistakes_week_" + week);
+    if(!raw) return [];
+    var ids = JSON.parse(raw);
+    var out = [];
+    for(var i=0;i<ids.length;i++){
+      if(Q[ids[i]]) out.push(Q[ids[i]]);
+    }
+    return out;
+  }catch(e){
+    return [];
+  }
+}
+
+function saveWeekMistakes(week, questions, answers){
+  try{
+    var key = "practice_mistakes_week_" + week;
+    var old = [];
+    var raw = localStorage.getItem(key);
+    if(raw) old = JSON.parse(raw);
+    for(var i=0;i<questions.length;i++){
+      if(answers[i] !== questions[i].c){
+        var id = getQuestionIndex(questions[i]);
+        if(id >= 0 && old.indexOf(id) === -1) old.push(id);
+      }
+    }
+    localStorage.setItem(key, JSON.stringify(old));
+  }catch(e){}
+}
+
+function sampleBySubjects(subjects, total){
+  var pool = [];
+  for(var i=0;i<Q.length;i++){
+    if(subjects.indexOf(Q[i].subject) !== -1) pool.push(Q[i]);
+  }
+  return shuffle(pool).slice(0,total);
+}
+
+function buildDailyPractice(date){
+  var week = getISOWeek(date);
+  var day = date.getDay();
+
+  // Friday = repetition, with up to 5 previously missed questions.
+  if(day === 5){
+    var mistakes = shuffle(getWeekMistakes(week)).slice(0,5);
+    var rest = [];
+    var base = shuffle(Q);
+    for(var i=0;i<base.length && rest.length < 10;i++){
+      if(mistakes.indexOf(base[i]) === -1) rest.push(base[i]);
+    }
+    return shuffle(mistakes.concat(rest)).slice(0,10);
+  }
+
+  // Monday–Thursday: simple focus rotation based on weekday.
+  if(day === 1) return sampleBySubjects(["Samfunnsfag","Norsk","Matte"],10);
+  if(day === 2) return sampleBySubjects(["Engelsk","Matte","KRLE"],10);
+  if(day === 3) return sampleBySubjects(["Naturfag","Norsk","Engelsk"],10);
+  if(day === 4) return sampleBySubjects(["KRLE","Samfunnsfag","Musikk","Matte"],10);
+
+  // Weekend / outside normal school days.
+  return balancedSample(10);
+}
+
+function startPractice(){
+  mode="practice";
+  items=buildDailyPractice(new Date());
+  idx=0;
+  score=0;
+  userAnswers=[];
+  show("quiz");
+  renderQuestion();
+}
+
+function confirmStartTest(){
+  if(localStorage.getItem("uke35_40_test_done")==="1"){showStoredResult(); return;}
+  const ok=confirm("Prøven kan bare leveres én gang på denne enheten. Når du starter, bør du fullføre uten hjelp. Klar?");
+  if(ok) startTest();
+}
+
+function startTest(){
+  mode="test"; items=balancedSample(25); idx=0; score=0; userAnswers=[];
+  localStorage.setItem("uke35_40_test_started","1");
+  show("quiz"); renderQuestion();
+}
+
+function renderQuestion(){
+  selected=null;
+  $("explanation").classList.add("hidden");
+  $("nextBtn").classList.add("hidden");
+  const x=items[idx];
+  $("qSubject").textContent=x.subject;
+  $("qCounter").textContent=`${idx+1} / ${items.length}`;
+  $("bar").style.width=`${(idx/items.length)*100}%`;
+  $("qText").textContent=x.q;
+  const box=$("answers"); box.innerHTML="";
+  x.a.forEach((txt,i)=>{
+    const b=document.createElement("button");
+    b.className="answer"; b.textContent=String.fromCharCode(65+i)+". "+txt;
+    b.onclick=()=>choose(i,b);
+    box.appendChild(b);
+  });
+  $("quitBtn").style.display = mode==="test" ? "none" : "";
+}
+
+function choose(i,btn){
+  if(selected!==null) return;
+  selected=i;
+  const x=items[idx];
+  userAnswers.push(i);
+  if(i===x.c) score++;
+  [...$("answers").children].forEach((b,k)=>{
+    b.disabled=true;
+    if(mode==="practice"){
+      if(k===x.c) b.classList.add("correct");
+      if(k===i && i!==x.c) b.classList.add("wrong");
+    } else if(k===i){
+      b.classList.add("selected");
+    }
+  });
+  if(mode==="practice"){
+    $("explanation").innerHTML="<strong>"+(i===x.c?"Riktig!":"Ikke helt.")+"</strong> "+x.e;
+    $("explanation").classList.remove("hidden");
+  }
+  $("nextBtn").textContent = idx===items.length-1 ? "Se resultat" : "Neste";
+  $("nextBtn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+  if(selected===null) return;
+  idx++;
+  if(idx>=items.length){finish();return;}
+  renderQuestion();
+}
+
+function finish(){
+  $("bar").style.width="100%";
+  if(mode==="test"){
+    const result={
+      date:new Date().toLocaleString("nb-NO"),
+      score, total:items.length,
+      questions:items.map((x,i)=>({subject:x.subject,q:x.q,a:x.a,c:x.c,u:userAnswers[i],e:x.e}))
+    };
+    localStorage.setItem("uke35_40_test_done","1");
+    localStorage.setItem("uke35_40_test_result",JSON.stringify(result));
+    renderResult(result,true);
+  }else{
+    saveWeekMistakes(getISOWeek(new Date()), items, userAnswers);
+    const result={score,total:items.length,questions:items.map((x,i)=>({...x,u:userAnswers[i]}))};
+    renderResult(result,false);
+  }
+}
+
+function renderResult(r,isTest){
+  show("result");
+  const pct=Math.round(r.score/r.total*100);
+  $("resultLabel").textContent=isTest?"Prøveresultat":"Dagens økt";
+  $("resultTitle").textContent=isTest?"Prøven er levert":"Bra jobbet – økten er ferdig";
+  $("scoreBig").textContent=`${r.score}/${r.total}`;
+  $("scoreText").textContent=`${pct} % riktig`;
+  let msg = pct>=88 ? "Svært god oversikt over temaene." :
+            pct>=72 ? "God kontroll. Se spesielt på spørsmålene som var feil." :
+            pct>=56 ? "Mye sitter allerede. Gå gjennom feilene og repeter litt hver dag." :
+            "Dette viser hvilke temaer dere bør bruke de neste 10-minuttersøktene på.";
+  $("resultMessage").textContent=msg;
+  $("shareBtn").classList.toggle("hidden",!isTest);
+  $("copyBtn").classList.toggle("hidden",!isTest);
+
+  const wrap=$("reviewWrap"); wrap.innerHTML="";
+  r.questions.forEach((x,i)=>{
+    const correct = x.u===x.c;
+    const d=document.createElement("div");
+    d.className="review "+(correct?"ok":"bad");
+    d.innerHTML=`
+      <span class="pill ${correct?"ok":"bad"}">${correct?"Riktig":"Feil"}</span>
+      <span class="subject" style="margin-left:6px">${x.subject}</span>
+      <p><strong>${i+1}. ${escapeHtml(x.q)}</strong></p>
+      <p>Ditt svar: ${x.u==null?"Ikke besvart":escapeHtml(x.a[x.u])}</p>
+      ${!correct?`<p><strong>Riktig svar:</strong> ${escapeHtml(x.a[x.c])}</p>`:""}
+      <p class="small">${escapeHtml(x.e||"")}</p>`;
+    wrap.appendChild(d);
+  });
+}
+
+function buildShareText(){
+  const raw=localStorage.getItem("uke35_40_test_result");
+  if(!raw) return "Ingen prøveresultat funnet.";
+  const r=JSON.parse(raw), pct=Math.round(r.score/r.total*100);
+  const wrong=r.questions.map((x,i)=>({x,i})).filter(o=>o.x.u!==o.x.c);
+  let t=`10. klasse – prøve uke 35–40\nResultat: ${r.score}/${r.total} (${pct} %)\nDato: ${r.date}\n`;
+  if(!wrong.length){t+="\nAlle svar var riktige 🎉";}
+  else{
+    t+="\nFeil / fasit:";
+    wrong.forEach(({x,i})=>{
+      t+=`\n${i+1}. ${x.subject}: riktig = ${x.a[x.c]}`;
+    });
+  }
+  return t;
+}
+
+async function shareResult(){
+  const text=buildShareText();
+  if(navigator.share){
+    try{await navigator.share({title:"Prøveresultat 10. klasse",text});}catch(e){}
+  }else{
+    await navigator.clipboard.writeText(text);
+    alert("Resultatet er kopiert. Lim det inn i en SMS.");
+  }
+}
+async function copyResult(){
+  await navigator.clipboard.writeText(buildShareText());
+  alert("Resultatet er kopiert. Lim det inn i en SMS.");
+}
+
+function showStoredResult(){
+  const raw=localStorage.getItem("uke35_40_test_result");
+  if(raw) renderResult(JSON.parse(raw),true);
+  else alert("Prøven er registrert som brukt på denne enheten, men resultatet finnes ikke lenger.");
+}
+function show(id){
+  ["home","quiz","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function goHome(){show("home"); updateStatus();}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+
+function updateStatus(){
+  const done=localStorage.getItem("uke35_40_test_done")==="1";
+  $("testStartBtn").textContent=done?"Se prøveresultatet":"Start prøven";
+  $("testStatus").textContent=done?"Prøven er allerede levert på denne enheten. Resultat og fasit kan vises igjen.":"Prøven har ett forsøk på denne enheten.";
+
+  var now = new Date();
+  var week = getISOWeek(now);
+  var day = now.getDay();
+
+  $("todayLabel").innerHTML = "<strong>Uke " + week + " · " + getDayName(day) + " · Dagens 10 minutter</strong>";
+
+  if(day === 5){
+    $("todayDescription").textContent = "Fredag er repetisjonsdag. Du får spørsmål fra ukens temaer, med ekstra vekt på spørsmål du tidligere har svart feil på.";
+  }else if(day >= 1 && day <= 4){
+    $("todayDescription").textContent = "Dagens spørsmål er valgt ut fra ukedagen, slik at fagene fordeles gjennom uken.";
+  }else{
+    $("todayDescription").textContent = "Helgeøkt: en blanding av spørsmål fra hele perioden.";
+  }
+
+  $("practiceInfo").textContent="Dagens økt styres av datoen på enheten. Fredag brukes til repetisjon.";
+}
+updateStatus();
+</script>
+</body>
+</html>
