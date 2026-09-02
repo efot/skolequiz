@@ -121,7 +121,7 @@
   </section>
 
   <footer>
-    Appen bruker nettleserens lokale lagring for prøveresultat og tidligere feil. Dagens økt styres av datoen på enheten. Ett-forsøk-regelen for prøven gjelder på denne enheten/nettleseren.
+    Appen bruker nettleserens lokale lagring for prøveresultat, tidligere svar og spørsmålsrekkefølge. Hver bruker og nettleser får sin egen historikk. Dagens økt styres av datoen på enheten.
   </footer>
 </div>
 
@@ -211,7 +211,37 @@ const Q = [
 {subject:"Musikk",q:"Hvorfor teller et band ofte inn før de starter?",a:["For å få felles tempo og startpunkt","For å velge instrument","For å gjøre sangen kortere","For å endre toneart"],c:0,e:"En inn-telling gjør at alle vet tempo og nøyaktig når de skal begynne."},
 {subject:"Musikk",q:"Hva gjør en bassist ofte i et band?",a:["Binder sammen rytme og harmonikk","Spiller alltid melodien alene","Bestemmer teksten","Stopper trommene"],c:0,e:"Bass har ofte en viktig rolle mellom rytmeseksjonen og akkord/harmonikk."},
 {subject:"Musikk",q:"Hva er dynamikk i musikk?",a:["Variasjon i lydstyrke og intensitet","Bare sangens hastighet","Instrumentets merke","Antall vers"],c:0,e:"Dynamikk handler blant annet om å spille sterkere eller svakere og forme intensiteten."},
-{subject:"Musikk",q:"Hvis én musiker kommer ut av takt, hva er best?",a:["Lytte etter pulsen og finne seg rolig inn igjen","Stoppe hele sangen med en gang","Spille enda raskere","Ignorere de andre"],c:0,e:"Å lytte og finne tilbake til felles puls er en viktig samspillferdighet."}
+{subject:"Musikk",q:"Hvis én musiker kommer ut av takt, hva er best?",a:["Lytte etter pulsen og finne seg rolig inn igjen","Stoppe hele sangen med en gang","Spille enda raskere","Ignorere de andre"],c:0,e:"Å lytte og finne tilbake til felles puls er en viktig samspillferdighet."},
+
+/* FLERE VARIERTE SPØRSMÅL */
+{subject:"Norsk",q:"Hva er preteritum av «å skrive» på nynorsk?",a:["skriv","skreiv","skrive","skriven"],c:1,e:"«Skreiv» er preteritum av det sterke verbet «å skrive»."},
+{subject:"Norsk",q:"Hvilken form er bestemt flertall av «ein gut»?",a:["gutar","gutane","guten","ein gut"],c:1,e:"«Gutane» viser til bestemte gutter og står i bestemt form flertall."},
+{subject:"Norsk",q:"Hvilken setning har verbet i infinitiv?",a:["Ho les kvar dag.","Ho las i går.","Ho skal lese no.","Ho har lese boka."],c:2,e:"Etter modalverbet «skal» står hovedverbet «lese» i infinitiv uten «å»."},
+{subject:"Norsk",q:"Hvilket ord er hankjønn på nynorsk?",a:["ei bok","eit hus","ein stol","fleire bøker"],c:2,e:"Artikkelen «ein» viser at «stol» er et hankjønnsord."},
+{subject:"Engelsk",q:"Which sentence is written in the past tense?",a:["Gandhi leads a protest.","Gandhi led a protest.","Gandhi will lead a protest.","Gandhi is leading a protest."],c:1,e:"«Led» is the past-tense form of the irregular verb «lead»."},
+{subject:"Engelsk",q:"What does civil disobedience mean?",a:["Peacefully breaking a law to protest injustice","Following every law without questioning it","Using violence to replace a government","Refusing to discuss political questions"],c:0,e:"Civil disobedience is a deliberate, usually non-violent breach of law used to challenge injustice."},
+{subject:"Engelsk",q:"Which transition word introduces a contrast?",a:["Therefore","However","For example","In addition"],c:1,e:"«However» signals that the next idea contrasts with the previous one."},
+{subject:"Engelsk",q:"Which statement is supported by a reason?",a:["Mandela was inspiring because he defended equality.","Mandela lived in South Africa in the twentieth century.","Mandela became president after the apartheid period.","Mandela is mentioned in many history books."],c:0,e:"The word «because» connects the opinion with a reason."},
+{subject:"Matte",q:"Forenkle uttrykket 3(x + 4).",a:["3x + 4","3x + 7","3x + 12","7x"],c:2,e:"Tre må ganges med begge leddene i parentesen: 3x + 12."},
+{subject:"Matte",q:"Løs likningen 5x − 5 = 20.",a:["x = 3","x = 4","x = 5","x = 6"],c:2,e:"Legg til 5 på begge sider og del på 5: 5x = 25, altså x = 5."},
+{subject:"Matte",q:"Hva er verdien av 2³ · 2?",a:["8","10","16","32"],c:2,e:"2³ er 8, og 8 · 2 er 16."},
+{subject:"Matte",q:"Hvilket uttrykk er lik 6x − 2x + 5?",a:["4x + 5","4x − 5","8x + 5","12x + 5"],c:0,e:"Trekk sammen de like leddene: 6x − 2x = 4x."},
+{subject:"Naturfag",q:"Hvilken organisme er en nedbryter?",a:["En hauk","En gran","En sopp","En hare"],c:2,e:"Sopp bryter ned dødt organisk materiale og fører næringsstoffer tilbake til kretsløpet."},
+{subject:"Naturfag",q:"Hva viser et næringsnett?",a:["Flere sammenkoblede næringskjeder i et område","Antallet individer av bare én art","Alle abiotiske faktorer i et område","Rekkefølgen planter spirer om våren"],c:0,e:"Et næringsnett viser hvordan flere næringskjeder henger sammen."},
+{subject:"Naturfag",q:"Hva bør holdes likt når to feltområder sammenlignes?",a:["Metoden og størrelsen på området","Resultatet og konklusjonen","Været gjennom hele året","Artene som blir observert"],c:0,e:"Lik metode og likt areal gjør sammenligningen mer pålitelig."},
+{subject:"Naturfag",q:"Hva er en hypotese?",a:["En testbar forventning om et resultat","En konklusjon som alltid er bevist","En måling uten noen forklaring","En liste over alt utstyret"],c:0,e:"En hypotese er en begrunnet og testbar antakelse om hva man forventer å finne."},
+{subject:"Samfunnsfag",q:"Hvem var Vidkun Quisling under okkupasjonen?",a:["Leder for et regime som samarbeidet med tyskerne","Leder for den norske regjeringen i London","Kommandant for de allierte styrkene","Grunnlegger av den sivile motstanden"],c:0,e:"Quisling ledet Nasjonal Samling og sto i spissen for et regime som samarbeidet med okkupasjonsmakten."},
+{subject:"Samfunnsfag",q:"Hvor oppholdt den norske regjeringen seg i eksil?",a:["London","Berlin","Stockholm","København"],c:0,e:"Kongen og regjeringen fortsatte kampen fra Storbritannia, med regjeringen i London."},
+{subject:"Samfunnsfag",q:"Hva var rasjonering under krigen?",a:["Begrenset fordeling av varer det var knapphet på","Fri utdeling av alle nødvendige matvarer","Forbud mot å kjøpe norskproduserte varer","Et system for å verve soldater lokalt"],c:0,e:"Rasjonering fordelte knappe varer ved hjelp av blant annet rasjoneringskort."},
+{subject:"Samfunnsfag",q:"Hvilket spørsmål er viktigst når et krigsfotografi vurderes som kilde?",a:["Hvem tok bildet, når og i hvilken sammenheng?","Er bildet gammelt nok til å være troverdig?","Er motivet dramatisk og lett å huske?","Har bildet blitt trykket i en lærebok?"],c:0,e:"Opphav, tidspunkt og sammenheng er sentralt for å forstå hva bildet kan fortelle."},
+{subject:"KRLE",q:"Hva kjennetegner dydsetikk?",a:["Den spør hvilke egenskaper et godt menneske bør utvikle","Den vurderer bare hvor mange som får det bedre","Den følger alltid landets lover uten unntak","Den avgjør valg ut fra personlige fordeler"],c:0,e:"Dydsetikk handler særlig om karaktertrekk som mot, rettferdighet og ærlighet."},
+{subject:"KRLE",q:"Hva betyr det å begrunne et etisk standpunkt?",a:["Å forklare hvilke hensyn og argumenter standpunktet bygger på","Å gjenta standpunktet flere ganger uten nye grunner","Å vise at alle andre standpunkter er ulovlige","Å velge det synet som er mest populært"],c:0,e:"En begrunnelse viser hvorfor du mener noe, og hvilke verdier eller argumenter du bygger på."},
+{subject:"KRLE",q:"Hvilket hensyn passer best med konsekvensetikk?",a:["Hvilket valg gir samlet sett minst skade?","Hvilken regel gjelder uansett resultat?","Hvilken person har høyest status?","Hvilket valg krever minst forklaring?"],c:0,e:"Konsekvensetikken sammenligner mulige følger av de ulike valgene."},
+{subject:"KRLE",q:"Hva kan personlig ansvar innebære?",a:["Å stå for egne valg og forsøke å rette opp skade","Å legge skylden på andre når noe går galt","Å unngå beslutninger som kan få konsekvenser","Å følge flertallet uten å tenke selv"],c:0,e:"Ansvar innebærer både å eie valgene sine og å håndtere følgene av dem."},
+{subject:"Musikk",q:"Hva er en taktart?",a:["En måte å organisere pulsslag i takter på","En skala som bestemmer alle tonene","Et tegn som bare viser lydstyrke","En teknikk for å stemme gitaren"],c:0,e:"Taktarten viser hvordan pulsslag grupperes, for eksempel fire slag i 4/4-takt."},
+{subject:"Musikk",q:"Hva betyr tempo i musikk?",a:["Hvor raskt eller langsomt musikken går","Hvor sterkt eller svakt musikken spilles","Hvor lyst eller mørkt en tone klinger","Hvor mange vers sangen inneholder"],c:0,e:"Tempo beskriver hastigheten på den musikalske pulsen."},
+{subject:"Musikk",q:"Hvorfor er øyekontakt nyttig i samspill?",a:["Musikerne kan gi signaler om start, stopp og overganger","Musikerne slipper å lytte til resten av bandet","Tempoet blir automatisk riktig gjennom hele sangen","Alle kan spille ulike deler uten å øve sammen"],c:0,e:"Visuelle signaler hjelper bandet å koordinere viktige øyeblikk."},
+{subject:"Musikk",q:"Hva bør bandet gjøre hvis refrenget blir for kraftig?",a:["Justere dynamikken slik at alle delene fortsatt høres","Øke tempoet for å gjøre refrenget kortere","La hvert instrument spille en egen melodi","Fjerne pulsen til neste vers begynner"],c:0,e:"God dynamisk balanse gjør at både helheten og viktige stemmer kommer fram."}
 ];
 
 let mode = null, items = [], idx = 0, selected = null, score = 0, userAnswers = [];
@@ -260,6 +290,66 @@ function getQuestionIndex(q){
   return -1;
 }
 
+function questionKey(q){
+  return q.subject + "|" + q.q;
+}
+
+function localDateKey(date){
+  var y=date.getFullYear();
+  var m=String(date.getMonth()+1).padStart(2,"0");
+  var d=String(date.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+d;
+}
+
+function loadPracticeHistory(){
+  try{return JSON.parse(localStorage.getItem("practice_history_v2")||"{}");}
+  catch(e){return {};}
+}
+
+function savePracticeHistory(questions, answers){
+  try{
+    var history=loadPracticeHistory();
+    var now=Date.now();
+    for(var i=0;i<questions.length;i++){
+      var key=questionKey(questions[i]);
+      var h=history[key]||{seen:0,correct:0,wrong:0,lastSeen:0};
+      h.seen++;
+      if(answers[i]===questions[i].c) h.correct++; else h.wrong++;
+      h.lastSeen=now;
+      history[key]=h;
+    }
+    localStorage.setItem("practice_history_v2",JSON.stringify(history));
+  }catch(e){}
+}
+
+function daysSince(timestamp){
+  return timestamp ? (Date.now()-timestamp)/86400000 : 99999;
+}
+
+function smartSample(subjects,total,options){
+  options=options||{};
+  var history=loadPracticeHistory();
+  var pool=Q.filter(function(x){return subjects.indexOf(x.subject)!==-1;});
+  var unseen=shuffle(pool.filter(function(x){return !history[questionKey(x)];}));
+  var rested=shuffle(pool.filter(function(x){
+    var h=history[questionKey(x)];
+    return h && daysSince(h.lastSeen)>=(options.restDays||7);
+  })).sort(function(a,b){
+    return history[questionKey(a)].lastSeen-history[questionKey(b)].lastSeen;
+  });
+  var recent=shuffle(pool.filter(function(x){
+    var h=history[questionKey(x)];
+    return h && daysSince(h.lastSeen)<(options.restDays||7);
+  })).sort(function(a,b){
+    return history[questionKey(a)].lastSeen-history[questionKey(b)].lastSeen;
+  });
+  var chosen=[];
+  [unseen,rested,recent].forEach(function(group){
+    group.forEach(function(x){if(chosen.length<total && chosen.indexOf(x)===-1) chosen.push(x);});
+  });
+  return shuffle(chosen).slice(0,total);
+}
+
 function getWeekMistakes(week){
   try{
     var raw = localStorage.getItem("practice_mistakes_week_" + week);
@@ -292,11 +382,7 @@ function saveWeekMistakes(week, questions, answers){
 }
 
 function sampleBySubjects(subjects, total){
-  var pool = [];
-  for(var i=0;i<Q.length;i++){
-    if(subjects.indexOf(Q[i].subject) !== -1) pool.push(Q[i]);
-  }
-  return shuffle(pool).slice(0,total);
+  return smartSample(subjects,total,{restDays:10});
 }
 
 function buildDailyPractice(date){
@@ -307,7 +393,7 @@ function buildDailyPractice(date){
   if(day === 5){
     var mistakes = shuffle(getWeekMistakes(week)).slice(0,5);
     var rest = [];
-    var base = shuffle(Q);
+    var base = smartSample(["Norsk","Engelsk","Matte","Naturfag","Samfunnsfag","KRLE","Musikk"],10,{restDays:5});
     for(var i=0;i<base.length && rest.length < 10;i++){
       if(mistakes.indexOf(base[i]) === -1) rest.push(base[i]);
     }
@@ -326,7 +412,16 @@ function buildDailyPractice(date){
 
 function startPractice(){
   mode="practice";
-  items=buildDailyPractice(new Date());
+  var now=new Date();
+  var dailyKey="practice_daily_v2_"+localDateKey(now);
+  try{
+    var saved=JSON.parse(localStorage.getItem(dailyKey)||"null");
+    items=saved ? saved.map(function(key){return Q.find(function(x){return questionKey(x)===key;});}).filter(Boolean) : [];
+  }catch(e){items=[];}
+  if(items.length!==10){
+    items=buildDailyPractice(now);
+    try{localStorage.setItem(dailyKey,JSON.stringify(items.map(questionKey)));}catch(e){}
+  }
   idx=0;
   score=0;
   userAnswers=[];
@@ -356,10 +451,12 @@ function renderQuestion(){
   $("bar").style.width=`${(idx/items.length)*100}%`;
   $("qText").textContent=x.q;
   const box=$("answers"); box.innerHTML="";
-  x.a.forEach((txt,i)=>{
+  if(!x._order) x._order=shuffle(x.a.map(function(_,i){return i;}));
+  x._order.forEach((answerIndex)=>{
+    const txt=x.a[answerIndex];
     const b=document.createElement("button");
-    b.className="answer"; b.textContent=String.fromCharCode(65+i)+". "+txt;
-    b.onclick=()=>choose(i,b);
+    b.className="answer"; b.dataset.answerIndex=answerIndex; b.textContent=String.fromCharCode(65+box.children.length)+". "+txt;
+    b.onclick=()=>choose(answerIndex,b);
     box.appendChild(b);
   });
   $("quitBtn").style.display = mode==="test" ? "none" : "";
@@ -371,7 +468,8 @@ function choose(i,btn){
   const x=items[idx];
   userAnswers.push(i);
   if(i===x.c) score++;
-  [...$("answers").children].forEach((b,k)=>{
+  [...$("answers").children].forEach((b)=>{
+    const k=Number(b.dataset.answerIndex);
     b.disabled=true;
     if(mode==="practice"){
       if(k===x.c) b.classList.add("correct");
@@ -408,6 +506,7 @@ function finish(){
     renderResult(result,true);
   }else{
     saveWeekMistakes(getISOWeek(new Date()), items, userAnswers);
+    savePracticeHistory(items,userAnswers);
     const result={score,total:items.length,questions:items.map((x,i)=>({...x,u:userAnswers[i]}))};
     renderResult(result,false);
   }
@@ -505,7 +604,7 @@ function updateStatus(){
     $("todayDescription").textContent = "Helgeøkt: en blanding av spørsmål fra hele perioden.";
   }
 
-  $("practiceInfo").textContent="Dagens økt styres av datoen på enheten. Fredag brukes til repetisjon.";
+  $("practiceInfo").textContent="Appen prioriterer spørsmål du ikke har sett nylig. Fredag brukes til repetisjon av ukens feil.";
 }
 updateStatus();
 </script>
