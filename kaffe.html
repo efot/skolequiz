@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaffe-preset</title>
+<style>
+  :root { --bg:#f4f4f2; --card:#fff; --fg:#1d1d1f; --mute:#6b6b70; --line:#dcdcd8; --acc:#2563eb; --on:#16a34a; --off:#9ca3af; --warn:#dc2626; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121214; --card:#1d1d20; --fg:#ececee; --mute:#9a9aa2; --line:#33333a; --acc:#60a5fa; --on:#22c55e; --off:#4b5563; --warn:#f87171; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.4 system-ui,-apple-system,sans-serif; }
+  main { max-width:520px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  h1 { font-size:20px; margin:4px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; gap:10px; }
+  .state { font-size:28px; font-weight:700; text-align:center; padding:14px; border-radius:10px; background:var(--off); color:#fff; }
+  .state.on { background:var(--on); }
+  .db { font-size:44px; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
+  .sub { color:var(--mute); font-size:13px; text-align:center; }
+  canvas { width:100%; height:140px; display:block; border-radius:8px; background:var(--bg); }
+  label { display:grid; gap:4px; font-size:14px; color:var(--mute); }
+  label b { color:var(--fg); }
+  input[type=range] { width:100%; }
+  select, button { font:inherit; padding:10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--fg); }
+  button.primary { background:var(--acc); color:#fff; border-color:var(--acc); font-weight:600; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .arm { display:flex; align-items:center; gap:10px; font-size:16px; color:var(--fg); }
+  .arm input { width:24px; height:24px; }
+  #log { font:12px/1.5 ui-monospace,monospace; max-height:200px; overflow:auto; white-space:pre-wrap; color:var(--mute); }
+  .err { color:var(--warn); }
+</style>
+</head>
+<body>
+<main>
+  <h1>☕ Kaffe-preset</h1>
+
+  <button id="startBtn" class="primary">Start lytting</button>
+
+  <div class="card">
+    <div id="state" class="state">STILLE</div>
+    <div class="db"><span id="db">–</span> dB</div>
+    <div class="sub">Topp siste 10 s: <span id="peak">–</span> dB · Snitt: <span id="avg">–</span> dB</div>
+    <canvas id="graph" width="1000" height="280"></canvas>
+    <div class="sub">Grønn strek = terskel · siste 60 sekunder</div>
+  </div>
+
+  <div class="card">
+    <label>Terskel: <b><span id="thrV"></span> dB</b>
+      <input id="thr" type="range" min="-90" max="0" step="1"></label>
+    <div class="row">
+      <label>Start etter <b><span id="onDV"></span> s</b> over
+        <input id="onD" type="range" min="1" max="20" step="1"></label>
+      <label>Stopp etter <b><span id="offDV"></span> s</b> under
+        <input id="offD" type="range" min="1" max="60" step="1"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <label>Preset når den går<select id="pOn"></select></label>
+      <label>Preset når den stopper<select id="pOff"></select></label>
+    </div>
+    <label class="arm"><input id="armed" type="checkbox"> Last preset automatisk</label>
+    <div class="row">
+      <button id="testOn">Test «går»</button>
+      <button id="testOff">Test «stopper»</button>
+    </div>
+  </div>
+
+  <div class="card"><div id="log"></div></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('kaffe.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('kaffe.' + k, JSON.stringify(v)); } catch {} },
+};
+const cfg = { thr: store.get('thr', -45), onD: store.get('onD', 3), offD: store.get('offD', 6),
+              pOn: store.get('pOn', 'Velferd'), pOff: store.get('pOff', 'Clear display') };
+
+function bindRange(id) {
+  const el = $(id), out = $(id + 'V');
+  el.value = cfg[id]; out.textContent = cfg[id];
+  el.oninput = () => { cfg[id] = +el.value; out.textContent = el.value; store.set(id, cfg[id]); };
+}
+['thr', 'onD', 'offD'].forEach(bindRange);
+
+function log(msg, err) {
+  const line = document.createElement('div');
+  line.textContent = new Date().toLocaleTimeString('no') + '  ' + msg;
+  if (err) line.className = 'err';
+  $('log').prepend(line);
+}
+
+const TOPIC = location.hash.slice(1);
+const PRESETS = ['Clear display', 'demo', 'info all', 'Velferd', 'two screen', 'Hywind Tampen'];
+async function loadPresets() {
+  try {
+    if (!/^kaffe-[0-9a-f]{12}$/.test(TOPIC)) throw new Error('mangler nøkkel i lenken (#kaffe-...)');
+    const j = { presets: PRESETS };
+    for (const [sel, key] of [['pOn', 'pOn'], ['pOff', 'pOff']]) {
+      const el = $(sel); el.innerHTML = '';
+      const opts = sel === 'pOff' ? ['(ingen)', ...j.presets] : j.presets;
+      for (const p of opts) { const o = new Option(p, p); el.add(o); }
+      el.value = opts.includes(cfg[key]) ? cfg[key] : opts[0];
+      cfg[key] = el.value;
+      el.onchange = () => { cfg[key] = el.value; store.set(key, el.value); };
+    }
+    log('Klar. Sender til laptopen via ntfy.');
+  } catch (e) { log('Feil: ' + e.message, true); $('startBtn').disabled = true; }
+}
+
+let busy = false;
+async function loadPreset(preset, reason) {
+  if (!preset || preset === '(ingen)') return;
+  if (busy) { log('Hopper over – forrige kommando kjører fortsatt'); return; }
+  busy = true;
+  log(`Laster «${preset}» (${reason})…`);
+  try {
+    const r = await fetch('https://ntfy.sh/' + TOPIC, { method: 'POST', body: preset });
+    log(r.ok ? `✔ «${preset}» sendt til laptopen` : `✖ ntfy svarte ${r.status}`, !r.ok);
+  } catch (e) { log('✖ Nettverksfeil: ' + e.message, true); }
+  busy = false;
+}
+$('testOn').onclick = () => loadPreset(cfg.pOn, 'test går');
+$('testOff').onclick = () => loadPreset(cfg.pOff, 'test stopper');
+
+// --- Lyd ---
+let level = -100, running = false, aboveSince = null, belowSince = null;
+const hist = [];      // [ms, dB] siste 60 s
+
+async function start() {
+  $('startBtn').disabled = true;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: {
+      echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const an = ctx.createAnalyser(); an.fftSize = 2048;
+    ctx.createMediaStreamSource(stream).connect(an);
+    const buf = new Float32Array(an.fftSize);
+    setInterval(() => tick(an, buf), 100);
+    $('startBtn').textContent = 'Lytter…';
+    log('Mikrofon startet');
+    keepAwake();
+  } catch (e) {
+    $('startBtn').disabled = false;
+    log('Mikrofon feilet: ' + e.message, true);
+  }
+}
+$('startBtn').onclick = start;
+
+function tick(an, buf) {
+  an.getFloatTimeDomainData(buf);
+  let s = 0; for (const v of buf) s += v * v;
+  const db = 20 * Math.log10(Math.sqrt(s / buf.length) + 1e-9);
+  level = level < -99 ? db : level * 0.7 + db * 0.3;
+  const now = Date.now();
+  hist.push([now, level]); while (hist[0][0] < now - 60000) hist.shift();
+
+  if (level > cfg.thr) { belowSince = null; aboveSince ??= now; }
+  else { aboveSince = null; belowSince ??= now; }
+
+  if (!running && aboveSince && now - aboveSince >= cfg.onD * 1000) setRunning(true);
+  if (running && belowSince && now - belowSince >= cfg.offD * 1000) setRunning(false);
+  draw();
+}
+
+function setRunning(on) {
+  running = on;
+  $('state').textContent = on ? 'KAFFEMASKINEN GÅR' : 'STILLE';
+  $('state').classList.toggle('on', on);
+  log(on ? 'Kaffemaskin startet' : 'Kaffemaskin stoppet');
+  if ($('armed').checked) loadPreset(on ? cfg.pOn : cfg.pOff, on ? 'auto går' : 'auto stopper');
+}
+
+function draw() {
+  $('db').textContent = level.toFixed(0);
+  const recent = hist.filter(h => h[0] > Date.now() - 10000).map(h => h[1]);
+  $('peak').textContent = Math.max(...recent).toFixed(0);
+  $('avg').textContent = (recent.reduce((a, b) => a + b, 0) / recent.length).toFixed(0);
+  const c = $('graph'), g = c.getContext('2d'), W = c.width, H = c.height, now = Date.now();
+  const y = db => H - (Math.max(-90, Math.min(0, db)) + 90) / 90 * H;
+  g.clearRect(0, 0, W, H);
+  g.strokeStyle = getComputedStyle(document.body).getPropertyValue('--on'); g.lineWidth = 3;
+  g.beginPath(); g.moveTo(0, y(cfg.thr)); g.lineTo(W, y(cfg.thr)); g.stroke();
+  g.strokeStyle = getComputedStyle(document.body).getPropertyValue('--acc'); g.lineWidth = 4;
+  g.beginPath();
+  hist.forEach(([t, d], i) => { const x = W - (now - t) / 60000 * W; i ? g.lineTo(x, y(d)) : g.moveTo(x, y(d)); });
+  g.stroke();
+}
+
+async function keepAwake() {
+  try {
+    let lock = await navigator.wakeLock.request('screen');
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen');
+    });
+    log('Skjermen holdes våken');
+  } catch { log('Fikk ikke holde skjermen våken – sett skjermlås til «aldri» mens du tester', true); }
+}
+
+loadPresets();
+</script>
+</body>
+</html>
