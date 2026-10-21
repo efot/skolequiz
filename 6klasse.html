@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>6. klasse – 10 minutter om dagen</title>
+<style>
+  :root{
+    --bg:#f3f8f4; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+    --accent:#2f7a4f; --accent2:#e3f3e8; --ok:#15803d; --bad:#b91c1c;
+    --line:#d5e3d9; --warn:#9a6700; --gold:#b7791f; --gold2:#fff7e0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:900px;margin:auto;padding:18px}
+  .hero{background:linear-gradient(135deg,#25603e,#3d9264);color:white;border-radius:22px;padding:24px;margin:8px 0 18px;box-shadow:0 8px 28px #0002}
+  .hero h1{margin:0 0 8px;font-size:clamp(26px,5vw,42px)}
+  .hero p{margin:6px 0;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
+  .card h2,.card h3{margin-top:0}
+  .card.friday{border:2px solid #f2c94c;background:linear-gradient(180deg,#fffdf5,#fff)}
+  button,.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--accent);color:white}
+  button.secondary{background:#eef2f7;color:#263445;border:1px solid var(--line)}
+  button.gold{background:var(--gold)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .subject{display:inline-block;background:var(--accent2);color:#1f5c3a;padding:6px 10px;border-radius:999px;font-weight:800;font-size:13px}
+  .progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .question{font-size:20px;font-weight:800;line-height:1.35;margin:12px 0 14px}
+  .answers{display:grid;gap:10px}
+  .answer{width:100%;text-align:left;background:#fff;color:var(--text);border:2px solid var(--line);font-weight:600}
+  .answer:hover{border-color:#86b89a}
+  .answer.selected{border-color:var(--accent);background:var(--accent2)}
+  .answer.correct{border-color:#65a30d;background:#f0fdf4}
+  .answer.wrong{border-color:#dc2626;background:#fef2f2}
+  .explain{margin-top:14px;border-left:4px solid var(--accent);background:#f8fafc;padding:12px 14px;border-radius:8px;line-height:1.45}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .hidden{display:none!important}
+  .small{font-size:14px;color:var(--muted);line-height:1.45}
+  .scoreBig{font-size:54px;font-weight:900;color:var(--accent);line-height:1}
+  .review{margin:14px 0;padding:14px;border-radius:14px;border:1px solid var(--line);background:#fff}
+  .review.ok{border-left:5px solid var(--ok)}
+  .review.bad{border-left:5px solid var(--bad)}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}
+  .pill.ok{background:#dcfce7;color:#166534}.pill.bad{background:#fee2e2;color:#991b1b}
+  .notice{background:#fff7ed;border:1px solid #fed7aa;color:#8a4b08;border-radius:14px;padding:13px;line-height:1.45}
+  .reward{background:var(--gold2);border:2px solid #f2c94c;color:#7a4b00;border-radius:14px;padding:14px;line-height:1.45;font-weight:700;margin-top:12px}
+  .reward.no{background:#f1f5f9;border-color:#cbd5e1;color:#334155}
+  .testmode{background:#fee2e2;color:#991b1b;border-radius:12px;padding:10px 14px;font-weight:700;margin-bottom:12px}
+  .log{list-style:none;padding:0;margin:0}
+  .log li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .log li:last-child{border-bottom:0}
+  footer{color:var(--muted);font-size:12px;margin:22px 4px 10px;line-height:1.5}
+  @media (max-width:600px){.wrap{padding:12px}.hero{padding:20px}.question{font-size:18px}.answer{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="testBanner" class="testmode hidden"></div>
+  <section class="hero">
+    <h1>6. klasse – 10 minutter om dagen</h1>
+    <p>Mandag–torsdag: 10 spørsmål med forklaring etter hvert svar. Fagene fordeles gjennom uka.</p>
+    <p><strong>Fredag:</strong> Fredagsquiz med 15 spørsmål fra alle fag. Får du over 80 % riktig (minst 13 av 15), har du fortjent en belønning! ⭐</p>
+  </section>
+
+  <section id="home">
+    <div class="grid">
+      <div class="card">
+        <h2>📚 Dagens 10-minuttersøkt</h2>
+        <p id="todayLabel"><strong>Dagens plan</strong></p>
+        <p id="todayDescription">10 spørsmål tilpasset dagens dato.</p>
+        <button onclick="startPractice()">Start dagens økt</button>
+        <p class="small" id="practiceInfo"></p>
+      </div>
+      <div class="card friday">
+        <h2>⭐ Fredagsquiz</h2>
+        <p>15 spørsmål fra alle fag. Ingen fasit før du er ferdig, og du har ett forsøk hver fredag.</p>
+        <p><strong>Over 80 % riktig = belønning!</strong></p>
+        <button id="fridayBtn" class="gold" onclick="confirmStartFriday()">Start fredagsquizen</button>
+        <p class="small" id="fridayStatus"></p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>🏆 Fredagsresultater</h3>
+      <ul class="log" id="rewardLog"></ul>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>Temaer i appen</h3>
+      <div class="grid">
+        <div><span class="subject">Norsk</span><p>Rettskriving: og/å, da/når, komma, j-lyd, kj-lyd, sj-lyd og dobbel konsonant. Dialekter og nettvett.</p></div>
+        <div><span class="subject">Matematikk</span><p>Målestokk og kart, brøk, desimaltall, prosent, areal og omkrets.</p></div>
+        <div><span class="subject">Engelsk</span><p>Grammar, words and spelling, English-speaking countries og pronunciation.</p></div>
+        <div><span class="subject">Naturfag</span><p>Kropp og helse, jorda og livet på jorda, energi og materie, teknologi og forsøk.</p></div>
+        <div><span class="subject">Samfunnsfag</span><p>Frivillighet, argumentasjon og konflikt, allemannsretten.</p></div>
+        <div><span class="subject">KRLE</span><p>Religioner, hellige skrifter og hellige rom, fortellinger fra Bibelen, filosofer.</p></div>
+        <div><span class="subject">Kroppsøving</span><p>Friluftsliv: kart og kompass, himmelretninger, bål, telt og fiske.</p></div>
+        <div><span class="subject">Musikk</span><p>Puls, tempo, dynamikk og instrumenter.</p></div>
+        <div><span class="subject">Kunst og håndverk</span><p>Farger, skisser og perspektiv.</p></div>
+        <div><span class="subject">Mat og helse</span><p>Hygiene, kosthold og matlaging.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <span class="subject" id="qSubject"></span>
+        <strong id="qCounter"></strong>
+      </div>
+      <div class="progress"><div id="bar"></div></div>
+      <div class="question" id="qText"></div>
+      <div class="answers" id="answers"></div>
+      <div id="explanation" class="explain hidden"></div>
+      <div class="toolbar">
+        <button id="nextBtn" class="hidden" onclick="nextQuestion()">Neste</button>
+        <button class="secondary" id="quitBtn" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="card">
+      <span class="subject" id="resultLabel">Resultat</span>
+      <h2 id="resultTitle"></h2>
+      <div class="scoreBig" id="scoreBig"></div>
+      <p id="scoreText"></p>
+      <div id="rewardBox" class="reward hidden"></div>
+      <div id="resultMessage" class="notice" style="margin-top:12px"></div>
+      <div class="toolbar">
+        <button id="shareBtn" class="hidden" onclick="shareResult()">Del resultat</button>
+        <button id="copyBtn" class="hidden" onclick="copyResult()">Kopier til SMS</button>
+        <button class="secondary" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+    <div id="reviewWrap"></div>
+  </section>
+
+  <footer>
+    Appen lagrer fredagsresultater, tidligere svar og spørsmålsrekkefølge i nettleserens lokale lagring på denne enheten. Dagens økt styres av datoen på enheten.
+  </footer>
+</div>
+
+<script>
+const SUBJECTS = ["Norsk","Matematikk","Engelsk","Naturfag","Samfunnsfag","KRLE","Kroppsøving","Musikk","Kunst og håndverk","Mat og helse"];
+const REWARD_MIN = 13; // over 80 % av 15
+
+const Q = [
+/* NORSK – og/å */
+{subject:"Norsk",q:"Hvilket ord mangler? «Det er gøy ___ sykle.»",a:["å","og"],c:0,e:"Foran et verb i infinitiv (å sykle, å lese) bruker vi infinitivsmerket «å»."},
+{subject:"Norsk",q:"Hvilket ord mangler? «Jeg kjøpte ost ___ melk.»",a:["og","å"],c:0,e:"«Og» binder sammen like ord, som «ost og melk»."},
+{subject:"Norsk",q:"Hvilket ord mangler? «___, du skremte meg!»",a:["Å","Og"],c:0,e:"«Å» kan være et utrop, som «Å, du skremte meg!»."},
+{subject:"Norsk",q:"Hvilken setning er riktig?",a:["Hun liker å bade og fiske.","Hun liker og bade å fiske.","Hun liker å bade å fiske.","Hun liker og bade og fiske."],c:0,e:"«Å bade» er infinitiv. «Og» binder sammen «bade» og «fiske»."},
+{subject:"Norsk",q:"Hvilken setning er riktig?",a:["Vi gikk hjem og spiste middag.","Vi gikk hjem å spiste middag.","Vi gikk hjem å spise middag.","Vi gikk hjem og spise middag."],c:0,e:"«Spiste» er ikke infinitiv, så her binder «og» sammen to handlinger."},
+/* NORSK – komma */
+{subject:"Norsk",q:"Hvor skal kommaet stå? «Hvis du vil bli flink til å sjonglere så må du øve.»",a:["Etter «sjonglere»","Etter «Hvis»","Etter «flink»","Etter «må»"],c:0,e:"Leddsetningen «Hvis du vil bli flink til å sjonglere» skal ha komma etter seg: «…sjonglere, så må du øve»."},
+{subject:"Norsk",q:"Setninger som begynner med disse ordene, skal ofte ha komma. Hvilke ord er det?",a:["dersom, hvis, når, da","og, eller, men, for","jeg, du, han, hun","en, ei, et, den"],c:0,e:"Huskeregel: Setninger som begynner med «dersom, hvis, når og da», skal ofte ha komma."},
+{subject:"Norsk",q:"Hvilken setning har riktig komma?",a:["Jeg ville gå på tur, men det regnet.","Jeg ville, gå på tur men det regnet.","Jeg, ville gå på tur men det regnet.","Jeg ville gå på tur men, det regnet."],c:0,e:"Det skal være komma mellom to setninger som er bundet sammen med «og, eller, for» og «men»."},
+{subject:"Norsk",q:"Hva gjør et komma i en setning?",a:["Lager en liten pause","Avslutter setningen","Viser at det er et spørsmål","Viser at noen snakker"],c:0,e:"Komma lager en liten pause i setningen. Punktum avslutter den."},
+{subject:"Norsk",q:"Hva viser et punktum?",a:["At setningen er ferdig","At det kommer et spørsmål","At du skal ta en liten pause","At ordet er sammensatt"],c:0,e:"Punktum setter vi når setningen er ferdig. Etter punktum begynner neste setning med stor bokstav."},
+/* NORSK – da/når */
+{subject:"Norsk",q:"Hvilket ord passer? «___ jeg var liten, bodde jeg i Bergen.»",a:["Da","Når"],c:0,e:"«Da» bruker vi om noe som skjedde én gang (eller én periode) før."},
+{subject:"Norsk",q:"Hvilket ord passer? «Hver gang ___ det regner, blir jeg våt.»",a:["når","da"],c:0,e:"«Når» bruker vi om noe som skjer flere ganger, eller som skal skje."},
+{subject:"Norsk",q:"Hvilket ord passer? «___ jeg blir stor, vil jeg bli pilot.»",a:["Når","Da"],c:0,e:"Dette har ikke skjedd ennå. Om noe som skal skje, bruker vi «når»."},
+/* NORSK – rettskriving */
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["alltid","altid","alltidd","aldtid"],c:0,e:"Det skrives «alltid», med dobbel l."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["nettopp","nettop","netopp","netop"],c:0,e:"Det skrives «nettopp», med dobbel t og dobbel p."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["nysgjerrig","nysjerrig","nysgjerig","nyssjerrig"],c:0,e:"Det skrives «nysgjerrig», med sg og dobbel r."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["annerledes","anderledes","annerledens","anerledes"],c:0,e:"På bokmål skrives det «annerledes». «Anderledes» er dansk."},
+{subject:"Norsk",q:"Ett av disse ordene er skrevet FEIL. Hvilket?",a:["altid","adresse","vaffler","journalist"],c:0,e:"«Altid» er feil. Det skal være «alltid». De andre ordene er riktig skrevet."},
+{subject:"Norsk",q:"Ett av disse ordene er skrevet FEIL. Hvilket?",a:["nysjerrig","hemmelig","kanskje","misforstå"],c:0,e:"«Nysjerrig» er feil. Det skal være «nysgjerrig». De andre ordene er riktig skrevet."},
+{subject:"Norsk",q:"Hvilket ord har dobbel konsonant fordi vokalen foran er kort?",a:["hoppe","hope","sole","male"],c:0,e:"Etter en kort vokal skriver vi ofte dobbel konsonant: hoppe, katt, takk."},
+{subject:"Norsk",q:"Hvilket ord er et sammensatt ord skrevet riktig?",a:["fotballkamp","fotball kamp","fot ball kamp","fotball-kamp"],c:0,e:"Sammensatte ord skriver vi i ett ord: fotballkamp, skolesekk, bursdagskake."},
+{subject:"Norsk",q:"Hvilket ord uttales med j-lyd, men skrives IKKE med j?",a:["gjemme","jente","jul","ja"],c:0,e:"J-lyden kan også skrives med gj, g og hj: gjemme, gjespe, geit, gikk, hjem."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["hjem","jem","gjem","jhem"],c:0,e:"«Hjem» uttales med j-lyd, men skrives med hj."},
+{subject:"Norsk",q:"Huskeregel for j-lyden: Vi bruker sjelden j foran disse bokstavene. Hvilke?",a:["i og y","a og o","e og ø","u og å"],c:0,e:"Vi skriver sjelden j foran i og y. Derfor skriver vi «gikk» og «gi», ikke «jikk»."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["kjøkken","sjøkken","tjøkken","køkken"],c:0,e:"De fleste ord med kj-lyd skrives med kj: kjenne, kjeks, kjøkken."},
+{subject:"Norsk",q:"Disse ordene har kj-lyd, men er unntak. Hvilken rekke er riktig?",a:["kinn, kile, tjukk","kjeks, kjenne, kjøkken","skjorte, skje, sjø","jente, jul, ja"],c:0,e:"«Kinn, kile» og «tjukk» har kj-lyd uten å skrives med kj."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["skjorte","sjorte","kjorte","skorte"],c:0,e:"«Skjorte» skrives med skj. Sj-lyden kan skrives sj, skj og sk."},
+{subject:"Norsk",q:"Hva er de vanligste måtene å skrive sj-lyden på?",a:["skj, sk og sj","kj, tj og k","j, gj og hj","s, ss og z"],c:0,e:"Sj-lyden skrives oftest med skj, sk eller sj, som i «skje», «ski» og «sjakk»."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["sjakk","skjakk","kjakk","schakk"],c:0,e:"«Sjakk» skrives med sj."},
+{subject:"Norsk",q:"Hvordan skrives ordet for det søte vi har i kaker?",a:["sukker","sokker","suker","sukkerr"],c:0,e:"Kort o-lyd skriver vi ofte med u: sukker, bukse, ung."},
+{subject:"Norsk",q:"Hvilket ord er skrevet riktig?",a:["stol","stul","stål","stoll"],c:0,e:"Lang o-lyd skriver vi som regel med o: sol, stol, bord."},
+{subject:"Norsk",q:"Hvilket ord har kort o-lyd skrevet med u?",a:["bukse","bord","sol","stol"],c:0,e:"I «bukse» er o-lyden kort, og da skriver vi ofte u. Sol, stol og bord har lang o-lyd skrevet med o."},
+{subject:"Norsk",q:"Hva betyr forkortelsen «f.eks.»?",a:["for eksempel","for ekstra","flere eksempler","før eksamen"],c:0,e:"«F.eks.» er forkortelse for «for eksempel». «Osv.» betyr «og så videre»."},
+{subject:"Norsk",q:"Hva er en dialekt?",a:["Måten folk snakker på et bestemt sted","Et eget skriftspråk","Et fremmedspråk","En type dikt"],c:0,e:"En dialekt er måten man snakker på i et område. I Norge har vi mange forskjellige dialekter."},
+{subject:"Norsk",q:"Hva er lurt å gjøre før du legger ut et bilde av en venn på nett?",a:["Spørre vennen om lov","Ingenting, det er alltid greit","Legge det ut og spørre etterpå","Bare sjekke at bildet er fint"],c:0,e:"God nettvett er å spørre om lov før man deler bilder av andre."},
+
+/* MATEMATIKK – målestokk */
+{subject:"Matematikk",q:"Et kart har målestokk 1:250. Hva betyr det?",a:["Kartet er 250 ganger mindre enn virkeligheten","Kartet er 250 ganger større enn virkeligheten","Kartet er 250 cm langt","Kartet viser 250 hus"],c:0,e:"1:250 betyr at 1 cm på kartet er 250 cm i virkeligheten. Kartet er altså 250 ganger mindre."},
+{subject:"Matematikk",q:"Målestokk 1:250. Hvor langt er 1 cm på tegningen i virkeligheten?",a:["250 cm","25 cm","2,5 cm","2500 cm"],c:0,e:"1 cm på tegningen er 250 cm i virkeligheten, og det er 2,5 meter."},
+{subject:"Matematikk",q:"Målestokk 1:250. En sti er 4 cm på tegningen. Hvor lang er den i virkeligheten?",a:["10 m","1 m","100 m","25 m"],c:0,e:"4 · 250 cm = 1000 cm, og det er 10 meter."},
+{subject:"Matematikk",q:"Målestokk 1:100. En vegg er 3 cm på tegningen. Hvor lang er den i virkeligheten?",a:["3 m","30 cm","30 m","300 m"],c:0,e:"3 · 100 cm = 300 cm, og det er 3 meter."},
+{subject:"Matematikk",q:"Et turkart har målestokk 1:50 000. Hvor langt er 2 cm på kartet i virkeligheten?",a:["1 km","100 m","10 km","500 m"],c:0,e:"2 · 50 000 cm = 100 000 cm = 1000 m = 1 km."},
+{subject:"Matematikk",q:"Et bord er 50 cm langt. Hvor langt blir det på en tegning med målestokk 1:10?",a:["5 cm","50 cm","500 cm","0,5 cm"],c:0,e:"Med målestokk 1:10 blir alt 10 ganger mindre: 50 cm : 10 = 5 cm."},
+{subject:"Matematikk",q:"Hvilken målestokk viser ting STØRST på tegningen?",a:["1:100","1:1000","1:10 000","1:50 000"],c:0,e:"Jo mindre tallet etter kolon er, jo mindre er forminskingen. 1:100 viser derfor ting størst."},
+{subject:"Matematikk",q:"Hvor mange meter er 250 cm?",a:["2,5 m","25 m","0,25 m","250 m"],c:0,e:"100 cm = 1 m. Da er 250 cm = 2,5 m."},
+/* MATEMATIKK – annet 6. trinn */
+{subject:"Matematikk",q:"Hva er 3/4 av 20?",a:["15","5","12","16"],c:0,e:"1/4 av 20 er 5. Da er 3/4 av 20 lik 3 · 5 = 15."},
+{subject:"Matematikk",q:"Hvilken brøk er det samme som 0,5?",a:["1/2","1/5","5/1","1/50"],c:0,e:"0,5 er en halv, altså 1/2. Det er også 50 %."},
+{subject:"Matematikk",q:"Hva er 25 % av 80?",a:["20","25","40","8"],c:0,e:"25 % er en fjerdedel. 80 : 4 = 20."},
+{subject:"Matematikk",q:"Hva er 7 · 8?",a:["56","54","64","48"],c:0,e:"7 · 8 = 56."},
+{subject:"Matematikk",q:"Hva er 144 : 12?",a:["12","14","11","22"],c:0,e:"12 · 12 = 144, derfor er 144 : 12 = 12."},
+{subject:"Matematikk",q:"Et rektangel er 5 cm langt og 3 cm bredt. Hva er omkretsen?",a:["16 cm","15 cm","8 cm","30 cm"],c:0,e:"Omkrets er summen av alle sidene: 5 + 3 + 5 + 3 = 16 cm."},
+{subject:"Matematikk",q:"Et rektangel er 5 cm langt og 3 cm bredt. Hva er arealet?",a:["15 cm²","16 cm²","8 cm²","30 cm²"],c:0,e:"Areal = lengde · bredde = 5 · 3 = 15 cm²."},
+{subject:"Matematikk",q:"Hvilket tall er størst?",a:["0,7","0,65","0,605","0,09"],c:0,e:"Sammenlign tidelene først: 0,7 har 7 tideler, mens de andre har 6 eller 0."},
+{subject:"Matematikk",q:"Hva er 1,5 + 2,75?",a:["4,25","3,25","4,15","3,80"],c:0,e:"1,50 + 2,75 = 4,25. Husk å sette kommaene under hverandre."},
+{subject:"Matematikk",q:"Hva er gjennomsnittet av 4, 6 og 8?",a:["6","18","5","7"],c:0,e:"Legg sammen og del på antall tall: (4 + 6 + 8) : 3 = 18 : 3 = 6."},
+{subject:"Matematikk",q:"Hvor mange grader er en rett vinkel?",a:["90°","180°","45°","360°"],c:0,e:"En rett vinkel er 90 grader, som hjørnet på et ark."},
+{subject:"Matematikk",q:"Rund av 3,47 til nærmeste hele tall.",a:["3","4","3,5","3,4"],c:0,e:"Tidelssifferet er 4. Det er mindre enn 5, så vi runder ned til 3."},
+
+/* ENGELSK */
+{subject:"Engelsk",q:"Which word is a noun?",a:["computer","eat","between","pretty"],c:0,e:"Et substantiv (noun) er navnet på en ting, et dyr eller en person. «Computer» er en ting."},
+{subject:"Engelsk",q:"Which word is a preposition?",a:["on","reading","is","a"],c:0,e:"En preposisjon (preposition) forteller hvor noe er: on, in, under, between."},
+{subject:"Engelsk",q:"Which word is a verb?",a:["run","blue","under","table"],c:0,e:"Et verb (verb) er noe man gjør: run, eat, swim."},
+{subject:"Engelsk",q:"Which word is an adjective?",a:["happy","jump","chair","in"],c:0,e:"Et adjektiv (adjective) beskriver noe: happy, big, red."},
+{subject:"Engelsk",q:"Which word is a pronoun?",a:["she","chair","quickly","green"],c:0,e:"Et pronomen (pronoun) brukes i stedet for et navn: I, you, he, she, it, we, they."},
+{subject:"Engelsk",q:"Choose the best antonym for COLD.",a:["hot","cool","easy","good"],c:0,e:"Et antonym er et ord som betyr det motsatte. Det motsatte av «cold» er «hot»."},
+{subject:"Engelsk",q:"Choose the best antonym for BIG.",a:["small","large","huge","tall"],c:0,e:"Det motsatte av «big» er «small»."},
+{subject:"Engelsk",q:"Choose the best antonym for HAPPY.",a:["sad","glad","funny","nice"],c:0,e:"Det motsatte av «happy» er «sad»."},
+{subject:"Engelsk",q:"«Ball» is spelled b-a-l. True or false?",a:["False","True"],c:0,e:"«Ball» staves b-a-l-l, med to l-er."},
+{subject:"Engelsk",q:"Which word is spelled correctly?",a:["because","becaus","becuse","beacuse"],c:0,e:"Det staves «because»."},
+{subject:"Engelsk",q:"What is a cloud?",a:["something you see in the sky","something that grows in the ground","something you use to talk to others","something you eat"],c:0,e:"«A cloud» er en sky, noe du ser på himmelen."},
+{subject:"Engelsk",q:"What is a phone?",a:["something you use to talk to others","something you see in the sky","something that grows in the ground","something you wear"],c:0,e:"«A phone» er en telefon, noe du bruker for å snakke med andre."},
+{subject:"Engelsk",q:"What is a flower?",a:["something that grows in the ground","something you see in the sky","something you use to talk to others","something you drive"],c:0,e:"«A flower» er en blomst, noe som vokser i jorda."},
+{subject:"Engelsk",q:"This is ___ book. (Boka er min.)",a:["my","me","I","mine"],c:0,e:"«My» viser at noe tilhører meg: my book, my dog."},
+{subject:"Engelsk",q:"Lisa has a dog. It is ___ dog.",a:["her","his","she","their"],c:0,e:"Lisa er en jente, så vi bruker «her»: her dog."},
+{subject:"Engelsk",q:"___ do you live? – I live in Bergen.",a:["Where","When","Who","What"],c:0,e:"«Where» spør om sted (hvor)."},
+{subject:"Engelsk",q:"___ is your birthday? – In May.",a:["When","Where","Who","Which"],c:0,e:"«When» spør om tid (når)."},
+{subject:"Engelsk",q:"___ is that girl? – She is my sister.",a:["Who","What","Where","When"],c:0,e:"«Who» spør om en person (hvem)."},
+{subject:"Engelsk",q:"What is the capital of Great Britain?",a:["London","Dublin","Edinburgh","Manchester"],c:0,e:"Hovedstaden i Storbritannia er London."},
+{subject:"Engelsk",q:"What is the capital of the United States of America?",a:["Washington, D.C.","New York","Los Angeles","Chicago"],c:0,e:"Hovedstaden i USA er Washington, D.C. New York er den største byen."},
+{subject:"Engelsk",q:"What is the capital of Australia?",a:["Canberra","Sydney","Melbourne","Perth"],c:0,e:"Hovedstaden i Australia er Canberra, selv om Sydney er større."},
+{subject:"Engelsk",q:"Which country has Nairobi as its capital?",a:["Kenya","India","Singapore","New Zealand"],c:0,e:"Nairobi er hovedstaden i Kenya. Der er engelsk et av de offisielle språkene."},
+{subject:"Engelsk",q:"Which of these countries is NOT an English-speaking country?",a:["Spain","New Zealand","Singapore","India"],c:0,e:"I Spania snakker de spansk. I New Zealand, Singapore og India er engelsk et offisielt språk."},
+{subject:"Engelsk",q:"In which city can you see Tower Bridge and Big Ben?",a:["London","New York","Sydney","Dublin"],c:0,e:"Tower Bridge og Big Ben ligger i London."},
+{subject:"Engelsk",q:"«Phoebe laughs at Philip's photograph.» Which sound does «ph» make?",a:["f","p","h","v"],c:0,e:"På engelsk uttales «ph» som f: phone, photograph, Philip."},
+{subject:"Engelsk",q:"«Wet Veronica visits Walter the vampire.» Which two sounds do you practise?",a:["w and v","th and t","s and z","j and y"],c:0,e:"Setningen øver på forskjellen mellom w-lyden (wet, Walter) og v-lyden (Veronica, visits, vampire)."},
+{subject:"Engelsk",q:"What does «endangered» mean in «endangered animals»?",a:["in danger of dying out","very dangerous","very big","living in the city"],c:0,e:"«Endangered animals» er utrydningstruede dyr, altså dyr som står i fare for å dø ut."},
+
+/* NATURFAG */
+{subject:"Naturfag",q:"Hva trenger planter for å lage næring ved fotosyntese?",a:["Sollys, vann og karbondioksid","Bare jord","Bare vann","Oksygen og sukker"],c:0,e:"Ved fotosyntese bruker planter sollys, vann og karbondioksid (CO₂) til å lage sukker. Da lager de også oksygen."},
+{subject:"Naturfag",q:"Hvilket organ pumper blodet rundt i kroppen?",a:["Hjertet","Lungene","Magen","Hjernen"],c:0,e:"Hjertet er en muskel som pumper blodet rundt i kroppen."},
+{subject:"Naturfag",q:"Hva er lungenes viktigste jobb?",a:["Ta opp oksygen og kvitte seg med karbondioksid","Fordøye maten","Pumpe blod","Rense blodet for sukker"],c:0,e:"I lungene tar blodet opp oksygen fra lufta vi puster inn. Vi puster ut karbondioksid."},
+{subject:"Naturfag",q:"Hvor mange bein har et voksent menneske omtrent?",a:["206","106","306","56"],c:0,e:"En voksen har rundt 206 bein i skjelettet. Babyer har flere, men noen vokser sammen."},
+{subject:"Naturfag",q:"Hvilke tre tilstandsformer kan stoffer ha?",a:["Fast, flytende og gass","Varm, kald og lunken","Stor, liten og mellomstor","Hard, myk og seig"],c:0,e:"Vann kan for eksempel være fast (is), flytende (vann) og gass (vanndamp)."},
+{subject:"Naturfag",q:"Ved hvilken temperatur fryser vann til is?",a:["0 °C","100 °C","10 °C","−10 °C"],c:0,e:"Vann fryser ved 0 °C og koker ved 100 °C (ved havnivå)."},
+{subject:"Naturfag",q:"Hvilken energikilde er fornybar?",a:["Vindkraft","Olje","Kull","Gass"],c:0,e:"Vind tar ikke slutt, så vindkraft er fornybar. Olje, kull og gass tar slutt en gang."},
+{subject:"Naturfag",q:"Kan energi forsvinne?",a:["Nei, den går bare over til andre former","Ja, den blir borte når vi bruker den","Ja, men bare om natten","Bare elektrisk energi kan forsvinne"],c:0,e:"Energi forsvinner aldri. Den går over til andre former, for eksempel fra bevegelse til varme."},
+{subject:"Naturfag",q:"Hvor lang tid bruker jorda på å gå én gang rundt sola?",a:["Ett år","Ett døgn","En måned","En uke"],c:0,e:"Jorda bruker ett år rundt sola. Den bruker ett døgn på å snurre én gang rundt seg selv."},
+{subject:"Naturfag",q:"Hva står først i en næringskjede?",a:["En produsent, for eksempel en plante","Et rovdyr","En nedbryter","Et menneske"],c:0,e:"Næringskjeden starter med en produsent, som lager næring selv ved hjelp av sollys."},
+{subject:"Naturfag",q:"Hva er en hypotese?",a:["En gjetning som kan testes med forsøk","Et svar som alltid er riktig","En tegning av forsøket","En liste over utstyr"],c:0,e:"En hypotese er det du tror vil skje. Med et forsøk kan du finne ut om den stemmer."},
+{subject:"Naturfag",q:"Du vil teste hvilken gjødsel som virker best. Hva er viktig for et rettferdig forsøk?",a:["Bare endre én ting om gangen","Endre alt samtidig","Bare gjøre forsøket én gang","Gjette resultatet før du starter"],c:0,e:"Hvis du endrer bare én ting, vet du at det var den tingen som gjorde forskjellen."},
+{subject:"Naturfag",q:"Hva er teknologi?",a:["Redskaper og løsninger mennesker lager for å løse problemer","Bare datamaskiner","Alt som finnes i naturen","Bare ting med strøm"],c:0,e:"Teknologi er alt mennesker lager for å løse problemer, fra en sykkel til en mobiltelefon."},
+{subject:"Naturfag",q:"Hvorfor har mange sykler gir?",a:["Så det blir lettere å tråkke i motbakker","Så sykkelen blir tyngre","Så hjulene blir større","Så sykkelen kan bremse"],c:0,e:"Med lavt gir går hver tråkk kortere, så det blir lettere å komme opp bakker."},
+{subject:"Naturfag",q:"Hvorfor er regnskogen så viktig?",a:["Der lever svært mange av jordas dyre- og plantearter","Der er det alltid snø","Der bor det ingen dyr","Der finnes det ingen trær"],c:0,e:"Regnskogen har et enormt artsmangfold, og trærne tar opp mye karbondioksid."},
+
+/* SAMFUNNSFAG – frivillighet */
+{subject:"Samfunnsfag",q:"Hva betyr det å være frivillig?",a:["Å gjøre en innsats for andre uten å få betalt","Å ha en vanlig jobb med lønn","Å bli tvunget til å hjelpe","Å bare hjelpe familien sin"],c:0,e:"En frivillig bruker tid og krefter på noe for andre eller for fellesskapet, uten å få lønn."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «De frivillige organisasjonene er ikke en viktig del av beredskapen i Norge.»",a:["Fleip","Fakta"],c:0,e:"Fleip! Frivillige organisasjoner er en svært viktig del av beredskapen i Norge, for eksempel ved leting og redning."},
+{subject:"Samfunnsfag",q:"Hvilke to er blant de største beredskapsorganisasjonene i Norge?",a:["Røde Kors og Norsk Folkehjelp","Norges Fotballforbund og Speiderne","NRK og TV 2","Posten og Vy"],c:0,e:"Røde Kors og Norsk Folkehjelp er blant de største beredskapsorganisasjonene i Norge."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Det finnes frivillige organisasjoner som hjelper flyktninger å finne seg til rette.»",a:["Fakta","Fleip"],c:0,e:"Fakta! Flere organisasjoner hjelper flyktninger med å finne seg til rette på det nye hjemstedet sitt."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Kunst- og kulturlivet i Norge er ikke basert på frivillighet.»",a:["Fleip","Fakta"],c:0,e:"Fleip! Korps, kor, teatergrupper og festivaler drives ofte av frivillige."},
+{subject:"Samfunnsfag",q:"Hva gjør mange frivillige for mennesker som er eldre, syke eller bor alene?",a:["Besøker dem","Kjører dem på skolen","Lager lekser til dem","Ingenting"],c:0,e:"Mange frivillige besøker mennesker som lever alene, er eldre eller syke."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Hvis en organisasjon har veldig mange medlemmer, er det vanskeligere å påvirke.»",a:["Fleip","Fakta"],c:0,e:"Fleip! Jo flere medlemmer, jo lettere er det vanligvis å bli hørt."},
+{subject:"Samfunnsfag",q:"Hva kan en organisasjon gjøre for å få oppmerksomhet om saken sin?",a:["Arrangere en demonstrasjon eller sette opp en stand","Holde saken hemmelig","Slutte å snakke om saken","Bare skrive i dagboka si"],c:0,e:"Demonstrasjoner, stands og informasjon på nett er måter å spre saken sin på."},
+{subject:"Samfunnsfag",q:"I Miljøagentene plukker barna søppel og hjelper fuglelivet. Hvem bestemmer i Miljøagentene?",a:["Barna","Bare de voksne","Kommunen","Politiet"],c:0,e:"Miljøagentene er en miljøorganisasjon der barna selv bestemmer."},
+{subject:"Samfunnsfag",q:"Hva gjør en dirigent i et korps?",a:["Leder musikerne og viser takt og tempo","Reparerer instrumentene","Selger billetter","Skriver alle sangene"],c:0,e:"Dirigenten leder korpset eller koret og viser når og hvor fort de skal spille."},
+{subject:"Samfunnsfag",q:"Hvilket år fikk kvinner i Norge stemmerett på lik linje med menn?",a:["1913","1814","1945","1905"],c:0,e:"Norske kvinner fikk allmenn stemmerett i 1913."},
+/* SAMFUNNSFAG – argumentasjon og konflikt */
+{subject:"Samfunnsfag",q:"Hva betyr selve ordet «konflikt»?",a:["Sammenstøt eller kollisjon","Vennskap","Fest","Avtale"],c:0,e:"Ordet «konflikt» betyr sammenstøt eller kollisjon."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Det finnes bare én type konflikt.»",a:["Fleip","Fakta"],c:0,e:"Fleip! Det finnes mange typer konflikter, fra krangel mellom venner til krig mellom land."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Mange konflikter løses ved å snakke sammen.»",a:["Fakta","Fleip"],c:0,e:"Fakta! Språket er et av de viktigste verktøyene for å løse konflikter."},
+{subject:"Samfunnsfag",q:"Hva betyr ytringsfrihet?",a:["At vi har lov til å si og mene det vi vil","At alle må mene det samme","At bare voksne får si hva de mener","At man ikke har lov til å kritisere"],c:0,e:"Ytringsfrihet betyr at vi har tillatelse til å si og mene det vi vil."},
+{subject:"Samfunnsfag",q:"Hva betyr det å diskriminere?",a:["Å behandle mennesker dårligere fordi de har annen hudfarge, religion eller legning","Å være snill mot alle","Å diskutere en sak","Å stemme ved et valg"],c:0,e:"Å diskriminere er å forskjellsbehandle mennesker urettferdig, for eksempel på grunn av hudfarge, religion eller legning."},
+{subject:"Samfunnsfag",q:"Hva er et godt argument?",a:["En mening med en begrunnelse","Å rope høyest","Å gjenta det samme mange ganger","Å si at den andre er dum"],c:0,e:"Et godt argument forklarer HVORFOR du mener noe. Ofte bruker vi ordet «fordi»."},
+{subject:"Samfunnsfag",q:"Hva betyr det å overbevise noen?",a:["Å få noen til å mene det samme som deg","Å krangle med noen","Å være enig med alle","Å gi opp diskusjonen"],c:0,e:"Når du overbeviser noen, får du dem til å tro på det du mener."},
+{subject:"Samfunnsfag",q:"Hva er kildekritikk?",a:["Å vurdere om en kilde er til å stole på","Å kritisere vennene sine","Å lete etter vann i naturen","Å bare bruke én kilde"],c:0,e:"Kildekritikk betyr å spørre: Hvem har laget dette, når og hvorfor, og kan jeg stole på det?"},
+{subject:"Samfunnsfag",q:"To venner vil gjøre hver sin ting. Hva er et kompromiss?",a:["Begge gir litt etter, så de blir enige","Den sterkeste bestemmer","De slutter å være venner","Den ene får alltid viljen sin"],c:0,e:"Et kompromiss er en løsning der begge gir litt etter."},
+/* SAMFUNNSFAG – allemannsretten */
+{subject:"Samfunnsfag",q:"Hva er allemannsretten?",a:["Retten alle har til å gå på tur og være ute i naturen","Retten til å bygge hytte hvor man vil","Retten til å jakte uten jaktkort","Retten til å kjøre bil i skogen"],c:0,e:"Allemannsretten gir alle i Norge rett til å ferdes og oppholde seg i naturen."},
+{subject:"Samfunnsfag",q:"Hva heter loven der allemannsretten står skrevet?",a:["Friluftsloven","Naturloven","Turloven","Skogloven"],c:0,e:"Allemannsretten er skrevet ned i friluftsloven."},
+{subject:"Samfunnsfag",q:"Hva er utmark?",a:["Det vi vanligvis tenker på som «naturen», som skog og fjell","Dyrket mark og hager","Området rundt et hus","En parkeringsplass"],c:0,e:"Utmark er skog, fjell, myr og annen natur som ikke er innmark."},
+{subject:"Samfunnsfag",q:"Hva er innmark?",a:["Dyrket mark og områder nær hus, gårder og hytter","Skog og fjell","Alle steder ved sjøen","Alle stier"],c:0,e:"Innmark er for eksempel åkre, eng og områder i nærheten av bebodde hus, gårder og hytter."},
+{subject:"Samfunnsfag",q:"Når har du lov til å gå over dyrket mark?",a:["Når den er frosset eller snødekt mellom 15. oktober og 30. april","Hele sommeren","Aldri","Bare i helgene"],c:0,e:"Det er et unntak: Du kan ferdes på dyrket mark når den er frosset eller snødekt mellom 15. oktober og 30. april."},
+{subject:"Samfunnsfag",q:"Du vil sette opp telt på innmark. Hva må du gjøre?",a:["Spørre grunneieren om lov","Ingenting, det er alltid lov","Spørre kommunen","Betale en bot"],c:0,e:"I utmark kan du sette opp telt, men på innmark må du spørre den som eier jorda."},
+{subject:"Samfunnsfag",q:"Hva kalles pliktene vi har når vi er ute i naturen?",a:["Allemannspliktene","Friluftsreglene","Turpliktene","Naturlovene"],c:0,e:"Pliktene vi har i naturen, kalles allemannspliktene."},
+{subject:"Samfunnsfag",q:"Hvilken av disse er en allemannsplikt?",a:["Ta med deg søppelet ditt hjem","Knekke greiner til bålet fra levende trær","Lage mye lyd for å skremme dyr","Plukke alle blomstene du ser"],c:0,e:"Vi skal ikke ødelegge naturen, ta søppel med hjem, ikke knekke friske greiner og ikke forstyrre dyr og fugler."},
+{subject:"Samfunnsfag",q:"Hva betyr «sporløs ferdsel»?",a:["At du ikke etterlater spor etter deg i naturen","At du går uten sko","At du går der det ikke er sti","At du går i snøen"],c:0,e:"Sporløs ferdsel betyr at naturen skal se ut som før du kom."},
+{subject:"Samfunnsfag",q:"Hva betyr det å «høste» i naturen?",a:["Å plukke for eksempel bær og sopp","Å hogge ned trær","Å bygge en hytte","Å flytte steiner"],c:0,e:"Allemannsretten gir deg lov til å høste, altså plukke bær, sopp og blomster, i utmark."},
+{subject:"Samfunnsfag",q:"Hva er en grunneier?",a:["Den som eier jorda","En som jobber på en skole","En som passer på dyrene i skogen","En turleder"],c:0,e:"En grunneier er den som eier et område, for eksempel en gårdbruker."},
+{subject:"Samfunnsfag",q:"Fleip eller fakta? «Alle land i verden har allemannsrett.»",a:["Fleip","Fakta"],c:0,e:"Fleip! Ikke alle land har allemannsrett. At «alle mann» i Norge kan bruke naturen, er et gratis fellesgode."},
+
+/* KRLE */
+{subject:"KRLE",q:"Hva heter kristendommens hellige skrift?",a:["Bibelen","Koranen","Toraen","Vedaene"],c:0,e:"Kristendommens hellige skrift er Bibelen."},
+{subject:"KRLE",q:"Hva heter islams hellige skrift?",a:["Koranen","Bibelen","Toraen","Vedaene"],c:0,e:"Islams hellige skrift er Koranen."},
+{subject:"KRLE",q:"Hva heter den viktigste hellige skriften i jødedommen?",a:["Toraen","Koranen","Vedaene","Tipitaka"],c:0,e:"Toraen, de fem Mosebøkene, er den viktigste delen av jødenes hellige skrift."},
+{subject:"KRLE",q:"Hvilke hellige skrifter hører til hinduismen?",a:["Vedaene","Koranen","Bibelen","Toraen"],c:0,e:"Vedaene er blant hinduismens eldste hellige skrifter."},
+{subject:"KRLE",q:"Hvem fikk de ti bud av Gud, ifølge Bibelen?",a:["Moses","Abraham","Jesus","David"],c:0,e:"Ifølge Bibelen fikk Moses de ti bud av Gud på Sinai-fjellet."},
+{subject:"KRLE",q:"Hva handler fortellingen om den barmhjertige samaritanen om?",a:["Å hjelpe andre som trenger det, også fremmede","Å vinne en konkurranse","Å bygge en båt","Å reise til en ny by"],c:0,e:"Samaritanen hjalp en skadet mann som andre gikk forbi. Fortellingen lærer oss å hjelpe alle."},
+{subject:"KRLE",q:"Hva er en lignelse?",a:["En fortelling som skal lære oss noe","Et dikt om naturen","En regel i loven","En sang i kirka"],c:0,e:"Jesus fortalte mange lignelser, korte fortellinger med et viktig budskap."},
+{subject:"KRLE",q:"I lignelsene om det som var tapt og ble funnet (sauen og sønnen), hva er budskapet?",a:["Gud gleder seg over hver eneste en som kommer tilbake","Man skal aldri tilgi","Det er viktigst å være rik","Sauer er klokere enn mennesker"],c:0,e:"Lignelsene om det tapte forteller at Gud bryr seg om alle og gleder seg når noen kommer tilbake."},
+{subject:"KRLE",q:"Hva heter det hellige huset i islam?",a:["Moské","Synagoge","Kirke","Tempel"],c:0,e:"Muslimer samles til bønn i moskeen."},
+{subject:"KRLE",q:"Hva heter jødenes hellige hus?",a:["Synagoge","Moské","Kirke","Pagode"],c:0,e:"Jøder samles i synagogen."},
+{subject:"KRLE",q:"Hva betyr det at noe er «hellig»?",a:["Det er spesielt viktig og skal behandles med respekt","Det er gammelt","Det er dyrt","Det er hemmelig"],c:0,e:"Noe hellig er spesielt viktig i en religion. Hellige skrifter skal behandles på en spesiell måte."},
+{subject:"KRLE",q:"Hvilken filosof gikk rundt i Athen og stilte folk spørsmål?",a:["Sokrates","Søren Kierkegaard","Simone de Beauvoir","Hannah Arendt"],c:0,e:"Sokrates levde i Athen for ca. 2400 år siden og fikk folk til å tenke ved å stille spørsmål."},
+{subject:"KRLE",q:"Hvilken filosof er kjent for å skrive om kvinners rettigheter og likestilling?",a:["Simone de Beauvoir","Sokrates","Friedrich Nietzsche","Søren Kierkegaard"],c:0,e:"Den franske filosofen Simone de Beauvoir skrev om kvinners frihet og likestilling."},
+{subject:"KRLE",q:"Søren Kierkegaard var en filosof fra hvilket land?",a:["Danmark","Hellas","Frankrike","USA"],c:0,e:"Søren Kierkegaard var dansk. Han skrev mye om valg og om å være seg selv."},
+{subject:"KRLE",q:"Hva er filosofi?",a:["Å undre seg og tenke over store spørsmål","Å lære seg utenat","Å regne matte","Å be til Gud"],c:0,e:"I filosofi undrer vi oss over spørsmål som «Hvordan tar vi gode valg?»."},
+{subject:"KRLE",q:"Hva er et etisk dilemma?",a:["Et vanskelig valg der begge alternativene har gode og dårlige sider","Et valg med bare ett riktig svar","En matteoppgave","En regel i et spill"],c:0,e:"I et dilemma finnes det gode grunner for flere valg. Derfor er det vanskelig."},
+
+/* KROPPSØVING – friluftsliv */
+{subject:"Kroppsøving",q:"Hvilken del av kompassnålen peker alltid mot nord?",a:["Den røde delen","Den hvite delen","Begge delene","Ingen av delene"],c:0,e:"Den røde delen av kompassnålen peker alltid mot nord, og den hvite mot sør."},
+{subject:"Kroppsøving",q:"Hva viser marsjretningspilen på kompasset?",a:["Retningen du skal gå","Hvor nord er","Hvor langt du har gått","Hvor mye klokka er"],c:0,e:"Når kompasset er stilt inn, peker marsjretningspilen i retningen du skal gå."},
+{subject:"Kroppsøving",q:"Du skal ta ut kompasskurs. Hvordan legger du kompasset på kartet først?",a:["Med kanten fra der du er (A) til målet (B), og marsjretningspilen mot målet","Tilfeldig et sted på kartet","Med nordpilen mot deg selv","Under kartet"],c:0,e:"Kompasskanten skal gå fra A til B, med marsjretningspilen pekende mot målet."},
+{subject:"Kroppsøving",q:"Hva gjør du med kompasshuset når du tar ut kurs på kartet?",a:["Drei det til nordpilen og hjelpelinjene peker samme vei som nord–sør-linjene på kartet","Tar det av kompasset","Drei det til nålen står stille","Ingenting"],c:0,e:"Drei kompasshuset slik at nordpilen og hjelpelinjene har samme retning som nord–sør-linjene på kartet."},
+{subject:"Kroppsøving",q:"Kompasset er stilt inn. Hva gjør du til slutt?",a:["Snur deg til den røde nålen ligger inne i nordpilen","Rister på kompasset","Snur kompasset opp ned","Peker nålen mot sola"],c:0,e:"Snu deg til kompassnålen ligger inne i nordpilen, med rødt mot N. Da peker marsjretningspilen dit du skal gå."},
+{subject:"Kroppsøving",q:"Hvor er vanligvis nord på et kart?",a:["Øverst","Nederst","Til venstre","Til høyre"],c:0,e:"På de fleste kart er nord øverst. Nord–sør-linjene viser retningen."},
+{subject:"Kroppsøving",q:"Hvorfor peker de fleste parabolantenner i Norge mot sør?",a:["Satellittene går i bane over ekvator, rett sør for oss","Fordi det er varmest i sør","Fordi vinden kommer fra sør","Fordi de er bestemt slik ved lov"],c:0,e:"Signalene kommer fra satellitter over ekvator, rett sør for oss. Derfor peker antennene mot sør."},
+{subject:"Kroppsøving",q:"Hvilken vei flyr trekkfuglene om høsten?",a:["Mot sør","Mot nord","Mot øst","De flyr ikke noe sted"],c:0,e:"Trekkfuglene flyr sørover til varmere land om høsten og kommer tilbake om våren."},
+{subject:"Kroppsøving",q:"På hvilken side av steiner og trestammer vokser det ofte mest mose?",a:["Nordsiden","Sørsiden","Østsiden","Vestsiden"],c:0,e:"Nordsiden er skyggefull og fuktig, så der trives mosen best. Det er et naturtegn, men ikke helt sikkert."},
+{subject:"Kroppsøving",q:"Kan vi tenne bål i skogen hele året?",a:["Nei, det er bålforbud fra 15. april til 15. september","Ja, alltid","Nei, bare om vinteren","Ja, hvis det er helg"],c:0,e:"Det er generelt forbudt å tenne bål i eller nær skog og utmark fra 15. april til 15. september."},
+{subject:"Kroppsøving",q:"Hva er en gapahuk?",a:["Et enkelt ly med skrått tak og åpen front","Et telt med glidelås","En båt","En fiskestang"],c:0,e:"En gapahuk er et enkelt ly, ofte laget av stokker og greiner, med åpen side mot bålet."},
+{subject:"Kroppsøving",q:"Hvordan lager du pinnebrød?",a:["Tvinner deig rundt en pinne og steker den over bålet","Koker brødet i vann","Legger brødet i snøen","Steker det i ovnen hjemme"],c:0,e:"Deigen tvinnes rundt en pinne og stekes over glørne til den er gyllen."},
+{subject:"Kroppsøving",q:"Hva er det lurt å se etter når du velger teltplass?",a:["Et flatt og tørt sted","En bratt bakke","Midt i en bekk","Rett under et dødt tre"],c:0,e:"Et flatt og tørt sted gir god søvn og holder deg tørr."},
+{subject:"Kroppsøving",q:"Hva kan du se etter for å finne ut hvilke dyr som har vært i et område?",a:["Fotspor, ekskrementer og gnagemerker","Bare fuglesang","Skyene","Fargen på steinene"],c:0,e:"Dyrespor kan være fotspor i snø og gjørme, ekskrementer, fjær og gnagemerker."},
+{subject:"Kroppsøving",q:"Hvorfor varmer vi opp før vi trener?",a:["For å gjøre musklene klare og unngå skader","For å bli sliten raskere","For å slippe å trene","For å bli kald"],c:0,e:"Oppvarming øker pulsen og gjør musklene varme, så du presterer bedre og unngår skader."},
+
+/* MUSIKK */
+{subject:"Musikk",q:"Hva er puls i musikk?",a:["De jevne grunnslagene i musikken","Hvor høyt man spiller","Teksten i sangen","Navnet på sangen"],c:0,e:"Pulsen er de jevne slagene du kan klappe eller trampe til."},
+{subject:"Musikk",q:"Hva betyr tempo?",a:["Hvor fort eller sakte musikken går","Hvor høyt musikken spilles","Hvor mange som synger","Hvor lys tonen er"],c:0,e:"Tempo er hastigheten i musikken."},
+{subject:"Musikk",q:"Hva betyr «forte» i musikk?",a:["Sterkt","Svakt","Fort","Sakte"],c:0,e:"Forte (f) betyr sterkt, og piano (p) betyr svakt. Dette kalles dynamikk."},
+{subject:"Musikk",q:"Hvor mange linjer har et notesystem?",a:["5","4","6","3"],c:0,e:"Noter skrives på et notesystem med fem linjer."},
+{subject:"Musikk",q:"Hvilken instrumentgruppe hører trompet til?",a:["Messinginstrumenter","Strykeinstrumenter","Slagverk","Tangentinstrumenter"],c:0,e:"Trompet, trombone og tuba er messinginstrumenter. De finnes ofte i korps."},
+{subject:"Musikk",q:"Hvilket instrument er et strykeinstrument?",a:["Fiolin","Tromme","Fløyte","Trompet"],c:0,e:"Fiolin spilles med en bue som strykes over strengene."},
+
+/* KUNST OG HÅNDVERK */
+{subject:"Kunst og håndverk",q:"Hva er de tre primærfargene?",a:["Rød, gul og blå","Grønn, oransje og lilla","Svart, hvit og grå","Rosa, brun og turkis"],c:0,e:"Rød, gul og blå er primærfarger. De kan ikke blandes av andre farger."},
+{subject:"Kunst og håndverk",q:"Hvilken farge får du når du blander blått og gult?",a:["Grønn","Oransje","Lilla","Brun"],c:0,e:"Blått og gult blir grønt."},
+{subject:"Kunst og håndverk",q:"Hvilken farge får du når du blander rødt og gult?",a:["Oransje","Grønn","Lilla","Rosa"],c:0,e:"Rødt og gult blir oransje."},
+{subject:"Kunst og håndverk",q:"Hva er en skisse?",a:["En rask og enkel tegning før det ferdige arbeidet","Et ferdig maleri","En skulptur i leire","En type pensel"],c:0,e:"En skisse er en kladd. Der prøver du ut idéer før du lager det ferdige."},
+{subject:"Kunst og håndverk",q:"Hvordan tegner du ting som er langt borte, for å få perspektiv?",a:["Mindre og høyere opp på arket","Større og lenger ned","I samme størrelse som det som er nær","Bare med svart farge"],c:0,e:"Ting langt borte ser mindre ut. Når du tegner dem mindre, får bildet dybde."},
+{subject:"Kunst og håndverk",q:"Hva er en komplementærfarge til blå?",a:["Oransje","Grønn","Lilla","Turkis"],c:0,e:"Komplementærfarger står rett overfor hverandre i fargesirkelen: blå–oransje, rød–grønn, gul–lilla."},
+
+/* MAT OG HELSE */
+{subject:"Mat og helse",q:"Hvorfor skal du vaske hendene før du lager mat?",a:["For å unngå at bakterier kommer i maten","For at maten skal smake bedre","For å bli fortere ferdig","Det er ikke nødvendig"],c:0,e:"God hygiene hindrer at bakterier kommer i maten og gjør noen syke."},
+{subject:"Mat og helse",q:"Hvor kald bør det være i kjøleskapet?",a:["Høyst 4 °C","Omtrent 15 °C","Omtrent 20 °C","Under −18 °C"],c:0,e:"Kjøleskapet bør holde høyst 4 °C. Fryseren bør være −18 °C eller kaldere."},
+{subject:"Mat og helse",q:"Hva betyr «best før» på en matvare?",a:["Maten er ofte god etter datoen også. Se, lukt og smak.","Maten må kastes dagen etter","Maten er farlig etter datoen","Maten er best etter datoen"],c:0,e:"«Best før» betyr at kvaliteten er best fram til datoen. «Siste forbruksdag» betyr at du ikke skal spise maten etter datoen."},
+{subject:"Mat og helse",q:"Hvorfor bør du bruke eget skjærebrett til rå kylling?",a:["Så bakterier fra kyllingen ikke kommer over på annen mat","Fordi kylling er tung","For at kyllingen skal bli mør","Det spiller ingen rolle"],c:0,e:"Rå kylling kan ha bakterier. Bruk eget brett, og sørg for at kyllingen blir godt stekt."},
+{subject:"Mat og helse",q:"Hvor mange porsjoner frukt og grønnsaker anbefales hver dag?",a:["Minst 5","1","2","Ingen"],c:0,e:"Anbefalingen er «5 om dagen»: minst fem porsjoner frukt, bær og grønnsaker."},
+{subject:"Mat og helse",q:"Hvor mange milliliter er 1 desiliter?",a:["100 ml","10 ml","1000 ml","1 ml"],c:0,e:"1 dl = 100 ml, og 10 dl = 1 liter."}
+];
+
+/* ---------- dato og lagring ---------- */
+const params = new URLSearchParams(location.search);
+const TEST_DATE = params.get("dato"); // f.eks. ?dato=2026-10-23 for å teste
+const PREFIX = TEST_DATE ? "k6test_" : "k6_";
+function now(){
+  if(TEST_DATE){
+    const p = TEST_DATE.split("-").map(Number);
+    if(p.length===3 && p.every(n=>!isNaN(n))) return new Date(p[0],p[1]-1,p[2],12,0,0);
+  }
+  return new Date();
+}
+function store(key,val){try{localStorage.setItem(PREFIX+key,val);}catch(e){}}
+function load(key){try{return localStorage.getItem(PREFIX+key);}catch(e){return null;}}
+
+let mode = null, items = [], idx = 0, selected = null, score = 0, userAnswers = [];
+const $ = id => document.getElementById(id);
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+function getISOWeek(d){
+  var date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  var yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+function weekKey(d){
+  var date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  return date.getUTCFullYear() + "-U" + String(getISOWeek(d)).padStart(2,"0");
+}
+function getDayName(day){
+  return ["Søndag","Mandag","Tirsdag","Onsdag","Torsdag","Fredag","Lørdag"][day];
+}
+function questionKey(q){ return q.subject + "|" + q.q + "|" + q.a[q.c]; }
+function findByKey(key){ return Q.find(function(x){return questionKey(x)===key;}); }
+function localDateKey(date){
+  return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");
+}
+
+function loadPracticeHistory(){
+  try{return JSON.parse(load("practice_history")||"{}");}
+  catch(e){return {};}
+}
+function savePracticeHistory(questions, answers){
+  var history=loadPracticeHistory();
+  var t=Date.now();
+  for(var i=0;i<questions.length;i++){
+    var key=questionKey(questions[i]);
+    var h=history[key]||{seen:0,correct:0,wrong:0,lastSeen:0};
+    h.seen++;
+    if(answers[i]===questions[i].c) h.correct++; else h.wrong++;
+    h.lastSeen=t;
+    history[key]=h;
+  }
+  store("practice_history",JSON.stringify(history));
+}
+function daysSince(timestamp){
+  return timestamp ? (Date.now()-timestamp)/86400000 : 99999;
+}
+
+// Prioriterer spørsmål som ikke er sett, deretter de som er hvilt lengst.
+function smartSample(subjects,total,restDays){
+  var history=loadPracticeHistory();
+  var pool=Q.filter(function(x){return subjects.indexOf(x.subject)!==-1;});
+  var unseen=shuffle(pool.filter(function(x){return !history[questionKey(x)];}));
+  var seen=shuffle(pool.filter(function(x){return history[questionKey(x)];})).sort(function(a,b){
+    return history[questionKey(a)].lastSeen-history[questionKey(b)].lastSeen;
+  });
+  var rested=seen.filter(function(x){return daysSince(history[questionKey(x)].lastSeen)>=restDays;});
+  var recent=seen.filter(function(x){return daysSince(history[questionKey(x)].lastSeen)<restDays;});
+  return shuffle(unseen.concat(rested,recent).slice(0,total));
+}
+
+// Fordeler spørsmålene jevnt på fagene (runde for runde).
+function balancedSmartSample(subjects,total,exclude){
+  exclude=exclude||[];
+  var perSubject={};
+  subjects.forEach(function(s){
+    perSubject[s]=smartSample([s],total,7).filter(function(x){return exclude.indexOf(x)===-1;});
+  });
+  var picked=[], order=shuffle(subjects), round=0;
+  while(picked.length<total && round<total*subjects.length){
+    var s=order[round%order.length];
+    if(perSubject[s].length) picked.push(perSubject[s].shift());
+    round++;
+  }
+  return picked;
+}
+
+function getWeekMistakes(){
+  try{
+    return JSON.parse(load("mistakes_"+weekKey(now()))||"[]").map(findByKey).filter(Boolean);
+  }catch(e){return [];}
+}
+function saveWeekMistakes(questions, answers){
+  var key="mistakes_"+weekKey(now());
+  var old=[];
+  try{old=JSON.parse(load(key)||"[]");}catch(e){}
+  for(var i=0;i<questions.length;i++){
+    var k=questionKey(questions[i]);
+    if(answers[i]!==questions[i].c && old.indexOf(k)===-1) old.push(k);
+  }
+  store(key,JSON.stringify(old));
+}
+
+const DAY_PLAN = {
+  1:["Norsk","Matematikk","Samfunnsfag"],
+  2:["Engelsk","Matematikk","KRLE","Musikk"],
+  3:["Norsk","Naturfag","Kroppsøving","Kunst og håndverk"],
+  4:["Engelsk","Samfunnsfag","Matematikk","Mat og helse"]
+};
+
+function buildDailyPractice(date){
+  var plan=DAY_PLAN[date.getDay()];
+  if(plan) return balancedSmartSample(plan,10);
+  return balancedSmartSample(SUBJECTS,10); // fredag og helg: blanding av alle fag
+}
+
+function buildFridayQuiz(){
+  var mistakes=shuffle(getWeekMistakes()).slice(0,5);
+  var rest=balancedSmartSample(SUBJECTS,15-mistakes.length,mistakes);
+  return shuffle(mistakes.concat(rest));
+}
+
+/* ---------- start ---------- */
+function startPractice(){
+  mode="practice";
+  var d=now();
+  var dailyKey="daily_"+localDateKey(d);
+  try{
+    var saved=JSON.parse(load(dailyKey)||"null");
+    items=saved ? saved.map(findByKey).filter(Boolean) : [];
+  }catch(e){items=[];}
+  if(items.length!==10){
+    items=buildDailyPractice(d);
+    store(dailyKey,JSON.stringify(items.map(questionKey)));
+  }
+  idx=0; score=0; userAnswers=[];
+  show("quiz"); renderQuestion();
+}
+
+function fridayKey(){ return "friday_"+weekKey(now()); }
+function getFridayResult(){
+  try{return JSON.parse(load(fridayKey())||"null");}catch(e){return null;}
+}
+
+function confirmStartFriday(){
+  var r=getFridayResult();
+  if(r){renderResult(r,true); return;}
+  if(now().getDay()!==5){alert("Fredagsquizen åpner på fredag. Frem til da kan du øve med dagens økt!"); return;}
+  if(confirm("Fredagsquizen har 15 spørsmål og ett forsøk. Du ser fasiten når du er ferdig. Over 80 % riktig (minst 13) gir belønning. Klar?")) startFriday();
+}
+
+function startFriday(){
+  mode="friday"; items=buildFridayQuiz(); idx=0; score=0; userAnswers=[];
+  show("quiz"); renderQuestion();
+}
+
+/* ---------- quiz ---------- */
+function renderQuestion(){
+  selected=null;
+  $("explanation").classList.add("hidden");
+  $("nextBtn").classList.add("hidden");
+  const x=items[idx];
+  $("qSubject").textContent=x.subject;
+  $("qCounter").textContent=`${idx+1} / ${items.length}`;
+  $("bar").style.width=`${(idx/items.length)*100}%`;
+  $("qText").textContent=x.q;
+  const box=$("answers"); box.innerHTML="";
+  const order=shuffle(x.a.map(function(_,i){return i;}));
+  order.forEach((answerIndex)=>{
+    const b=document.createElement("button");
+    b.className="answer"; b.dataset.answerIndex=answerIndex;
+    b.textContent=String.fromCharCode(65+box.children.length)+". "+x.a[answerIndex];
+    b.onclick=()=>choose(answerIndex);
+    box.appendChild(b);
+  });
+  $("quitBtn").style.display = mode==="friday" ? "none" : "";
+}
+
+function choose(i){
+  if(selected!==null) return;
+  selected=i;
+  const x=items[idx];
+  userAnswers.push(i);
+  if(i===x.c) score++;
+  [...$("answers").children].forEach((b)=>{
+    const k=Number(b.dataset.answerIndex);
+    b.disabled=true;
+    if(mode==="practice"){
+      if(k===x.c) b.classList.add("correct");
+      if(k===i && i!==x.c) b.classList.add("wrong");
+    } else if(k===i){
+      b.classList.add("selected");
+    }
+  });
+  if(mode==="practice"){
+    $("explanation").innerHTML="<strong>"+(i===x.c?"Riktig!":"Ikke helt.")+"</strong> "+escapeHtml(x.e);
+    $("explanation").classList.remove("hidden");
+  }
+  $("nextBtn").textContent = idx===items.length-1 ? "Se resultat" : "Neste";
+  $("nextBtn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+  if(selected===null) return;
+  idx++;
+  if(idx>=items.length){finish();return;}
+  renderQuestion();
+}
+
+function finish(){
+  $("bar").style.width="100%";
+  saveWeekMistakes(items,userAnswers);
+  savePracticeHistory(items,userAnswers);
+  const result={
+    date:now().toLocaleString("nb-NO"),
+    week:weekKey(now()),
+    score, total:items.length,
+    questions:items.map((x,i)=>({subject:x.subject,q:x.q,a:x.a,c:x.c,u:userAnswers[i],e:x.e}))
+  };
+  if(mode==="friday"){
+    store(fridayKey(),JSON.stringify(result));
+    var log=loadRewardLog();
+    log[result.week]={score:score,total:items.length,date:result.date};
+    store("reward_log",JSON.stringify(log));
+  }
+  renderResult(result,mode==="friday");
+}
+
+function earnedReward(r){ return r.score >= REWARD_MIN && r.score/r.total > 0.8; }
+
+function renderResult(r,isFriday){
+  show("result");
+  const pct=Math.round(r.score/r.total*100);
+  $("resultLabel").textContent=isFriday?"Fredagsquiz":"Dagens økt";
+  $("resultTitle").textContent=isFriday?"Fredagsquizen er levert":"Bra jobbet – økten er ferdig";
+  $("scoreBig").textContent=`${r.score}/${r.total}`;
+  $("scoreText").textContent=`${pct} % riktig`;
+  const rb=$("rewardBox");
+  if(isFriday){
+    rb.classList.remove("hidden");
+    if(earnedReward(r)){
+      rb.className="reward";
+      rb.textContent="⭐ Over 80 % riktig – du har fortjent en belønning! Vis resultatet til en voksen.";
+    }else{
+      rb.className="reward no";
+      rb.textContent="Du trengte minst 13 riktige for belønning denne gangen. Øv på feilene i neste ukes økter, så prøver du igjen neste fredag! 💪";
+    }
+  }else{
+    rb.classList.add("hidden");
+  }
+  $("resultMessage").textContent = pct>=88 ? "Svært god oversikt over temaene!" :
+            pct>=72 ? "God kontroll. Se ekstra på spørsmålene som var feil." :
+            pct>=56 ? "Mye sitter allerede. Gå gjennom feilene og øv litt hver dag." :
+            "Dette viser hvilke temaer du bør øve mer på de neste dagene.";
+  $("shareBtn").classList.toggle("hidden",!isFriday);
+  $("copyBtn").classList.toggle("hidden",!isFriday);
+
+  const wrap=$("reviewWrap"); wrap.innerHTML="";
+  r.questions.forEach((x,i)=>{
+    const correct = x.u===x.c;
+    const d=document.createElement("div");
+    d.className="review "+(correct?"ok":"bad");
+    d.innerHTML=`
+      <span class="pill ${correct?"ok":"bad"}">${correct?"Riktig":"Feil"}</span>
+      <span class="subject" style="margin-left:6px">${escapeHtml(x.subject)}</span>
+      <p><strong>${i+1}. ${escapeHtml(x.q)}</strong></p>
+      <p>Ditt svar: ${x.u==null?"Ikke besvart":escapeHtml(x.a[x.u])}</p>
+      ${!correct?`<p><strong>Riktig svar:</strong> ${escapeHtml(x.a[x.c])}</p>`:""}
+      <p class="small">${escapeHtml(x.e||"")}</p>`;
+    wrap.appendChild(d);
+  });
+}
+
+function buildShareText(){
+  const r=getFridayResult();
+  if(!r) return "Ingen fredagsquiz funnet.";
+  const pct=Math.round(r.score/r.total*100);
+  const wrong=r.questions.map((x,i)=>({x,i})).filter(o=>o.x.u!==o.x.c);
+  let t=`6. klasse – fredagsquiz (${r.week})\nResultat: ${r.score}/${r.total} (${pct} %)\n`;
+  t+= earnedReward(r) ? "Belønning: JA ⭐\n" : "Belønning: ikke denne gangen\n";
+  t+=`Dato: ${r.date}\n`;
+  if(!wrong.length){t+="\nAlle svar var riktige 🎉";}
+  else{
+    t+="\nFeil / fasit:";
+    wrong.forEach(({x,i})=>{ t+=`\n${i+1}. ${x.subject}: riktig = ${x.a[x.c]}`; });
+  }
+  return t;
+}
+async function shareResult(){
+  const text=buildShareText();
+  if(navigator.share){
+    try{await navigator.share({title:"Fredagsquiz 6. klasse",text});}catch(e){}
+  }else{
+    await copyResult();
+  }
+}
+async function copyResult(){
+  try{await navigator.clipboard.writeText(buildShareText()); alert("Resultatet er kopiert. Lim det inn i en SMS.");}
+  catch(e){alert(buildShareText());}
+}
+
+function loadRewardLog(){
+  try{return JSON.parse(load("reward_log")||"{}");}catch(e){return {};}
+}
+
+function show(id){
+  ["home","quiz","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function goHome(){show("home"); updateStatus();}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+
+function updateStatus(){
+  var d=now();
+  var day=d.getDay();
+  if(TEST_DATE){
+    $("testBanner").textContent="Testmodus: dato satt til "+localDateKey(d)+". Resultater lagres separat og teller ikke.";
+    $("testBanner").classList.remove("hidden");
+  }
+
+  $("todayLabel").innerHTML="<strong>Uke "+getISOWeek(d)+" · "+getDayName(day)+" · Dagens 10 minutter</strong>";
+  if(DAY_PLAN[day]){
+    $("todayDescription").textContent="Dagens fag: "+DAY_PLAN[day].join(", ")+".";
+  }else if(day===5){
+    $("todayDescription").textContent="Det er fredag! Øv gjerne litt først med en blanding fra alle fag, og ta så fredagsquizen.";
+  }else{
+    $("todayDescription").textContent="Helgeøkt: en blanding av spørsmål fra alle fag.";
+  }
+  $("practiceInfo").textContent="Appen prioriterer spørsmål du ikke har sett nylig. Feil fra uka kommer igjen på fredagsquizen.";
+
+  var r=getFridayResult();
+  var btn=$("fridayBtn");
+  if(r){
+    btn.textContent="Se resultatet";
+    btn.disabled=false;
+    $("fridayStatus").textContent="Denne ukas fredagsquiz er levert: "+r.score+"/"+r.total+(earnedReward(r)?" ⭐ Belønning!":".");
+  }else if(day===5){
+    btn.textContent="Start fredagsquizen";
+    btn.disabled=false;
+    $("fridayStatus").textContent="Fredagsquizen er åpen nå. Lykke til!";
+  }else{
+    btn.textContent="Åpner fredag";
+    btn.disabled=true;
+    $("fridayStatus").textContent="Fredagsquizen kan tas på fredag.";
+  }
+
+  var log=loadRewardLog();
+  var weeks=Object.keys(log).sort().reverse();
+  var ul=$("rewardLog"); ul.innerHTML="";
+  if(!weeks.length){
+    ul.innerHTML='<li class="small">Ingen fredagsquizer ennå.</li>';
+  }else{
+    weeks.forEach(function(w){
+      var e=log[w];
+      var li=document.createElement("li");
+      var ok=earnedReward(e);
+      li.innerHTML="<span>"+escapeHtml(w.replace("-U"," uke "))+"</span><span><strong>"+e.score+"/"+e.total+"</strong> "+(ok?"⭐ Belønning":"–")+"</span>";
+      ul.appendChild(li);
+    });
+  }
+}
+updateStatus();
+</script>
+</body>
+</html>
