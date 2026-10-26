@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Matteprøve – likninger og algebra</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+    --accent:#315f9b; --accent2:#e8f0fb; --ok:#15803d; --bad:#b91c1c;
+    --line:#d8dee9;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:900px;margin:auto;padding:18px}
+  .hero{background:linear-gradient(135deg,#284f83,#3f73b4);color:white;border-radius:22px;padding:24px;margin:8px 0 18px;box-shadow:0 8px 28px #0002}
+  .hero h1{margin:0 0 8px;font-size:clamp(26px,5vw,40px)}
+  .hero p{margin:6px 0;line-height:1.5}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 3px 12px #0000000d}
+  .card h2,.card h3{margin-top:0}
+  .card.recommended{border:2px solid var(--accent)}
+  .tag{display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:800;padding:3px 8px;border-radius:999px;margin-bottom:8px}
+  .done{color:var(--ok);font-weight:700}
+  button{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--accent);color:white}
+  button.secondary{background:#eef2f7;color:#263445;border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .subject{display:inline-block;background:var(--accent2);color:#244e82;padding:6px 10px;border-radius:999px;font-weight:800;font-size:13px}
+  .progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0}
+  .progress > div{height:100%;background:var(--accent);width:0;transition:.25s}
+  .question{font-size:20px;font-weight:800;line-height:1.4;margin:12px 0 14px;white-space:pre-line}
+  .answers{display:grid;gap:10px}
+  .answer{width:100%;text-align:left;background:#fff;color:var(--text);border:2px solid var(--line);font-weight:600}
+  .answer:hover{border-color:#8aa9d0}
+  .answer.selected{border-color:var(--accent);background:var(--accent2)}
+  .answer.correct{border-color:#65a30d;background:#f0fdf4}
+  .answer.wrong{border-color:#dc2626;background:#fef2f2}
+  .explain{margin-top:14px;border-left:4px solid var(--accent);background:#f8fafc;padding:12px 14px;border-radius:8px;line-height:1.5;white-space:pre-line}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .hidden{display:none!important}
+  .small{font-size:14px;color:var(--muted);line-height:1.45}
+  .scoreBig{font-size:54px;font-weight:900;color:var(--accent);line-height:1}
+  .review{margin:14px 0;padding:14px;border-radius:14px;border:1px solid var(--line);background:#fff}
+  .review.ok{border-left:5px solid var(--ok)}
+  .review.bad{border-left:5px solid var(--bad)}
+  .review p{white-space:pre-line}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}
+  .pill.ok{background:#dcfce7;color:#166534}.pill.bad{background:#fee2e2;color:#991b1b}
+  .notice{background:#fff7ed;border:1px solid #fed7aa;color:#8a4b08;border-radius:14px;padding:13px;line-height:1.45;margin-top:12px}
+  details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0;background:#fff}
+  summary{font-weight:800;cursor:pointer}
+  details pre{background:#f8fafc;border-radius:8px;padding:10px;overflow-x:auto;font-size:15px;line-height:1.5}
+  details p{line-height:1.5}
+  footer{color:var(--muted);font-size:12px;margin:22px 4px 10px;line-height:1.5}
+  @media (max-width:600px){.wrap{padding:12px}.hero{padding:20px}.question{font-size:18px}.answer{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <h1>Matteprøve torsdag 💪</h1>
+    <p>Likninger og algebra – de viktigste grunnreglene. Én økt om dagen fram til prøven, med forklaring etter hvert svar.</p>
+    <p>Ta det rolig: Du får se hvordan oppgaven løses hver gang, også når du svarer riktig.</p>
+  </section>
+
+  <section id="home">
+    <div class="grid" id="sessionCards"></div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>🔁 Øv på feilene dine</h3>
+      <p class="small" id="mistakeInfo"></p>
+      <button id="mistakeBtn" class="secondary" onclick="startMistakes()">Øv på feil</button>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h3>📝 Huskelapp</h3>
+      <p class="small">Les gjennom før du starter, og slå opp her når du står fast.</p>
+
+      <details>
+        <summary>1. Standardform</summary>
+        <p>Store og små tall skrives som <strong>et tall mellom 1 og 10</strong> ganget med <strong>en tierpotens</strong>.</p>
+<pre>234 000  = 2,34 · 10⁵   (kommaet flyttes 5 plasser til venstre)
+5 000    = 5 · 10³
+0,003    = 3 · 10⁻³     (kommaet flyttes 3 plasser til høyre)
+0,00071  = 7,1 · 10⁻⁴</pre>
+        <p>Stort tall → positiv eksponent. Lite tall (mindre enn 1) → negativ eksponent.</p>
+      </details>
+
+      <details>
+        <summary>2. Regne med bokstavuttrykk</summary>
+        <p><strong>Like ledd</strong> har samme bokstav, og bare de kan legges sammen:</p>
+<pre>3x + 5x = 8x
+2x + 3y + 4x = 6x + 3y      (x og y kan ikke slås sammen)
+5a + 2 − 3a + 4 = 2a + 6</pre>
+        <p><strong>Gange ut parentes:</strong> Gang tallet utenfor med <em>alle</em> leddene inni.</p>
+<pre>3(x + 4) = 3x + 12
+2(a − 5) = 2a − 10
+−(x − 3) = −x + 3        (minus foran parentes snur fortegnene)</pre>
+      </details>
+
+      <details>
+        <summary>3. Likninger med én ukjent</summary>
+        <p>Gylden regel: <strong>Gjør det samme på begge sider.</strong> Få x alene.</p>
+<pre>2x + 3 = 11
+2x + 3 − 3 = 11 − 3      (trekk fra 3 på begge sider)
+2x = 8
+2x : 2 = 8 : 2           (del på 2 på begge sider)
+x = 4</pre>
+        <p>Har du x på begge sider? Samle x-ene på én side først:</p>
+<pre>3x + 4 = x + 12
+3x − x = 12 − 4
+2x = 8
+x = 4</pre>
+      </details>
+
+      <details>
+        <summary>4. Likningssett – addisjonsmetoden</summary>
+        <p>Mål: Få én bokstav til å <strong>forsvinne</strong> når du legger likningene sammen. Det skjer når tallene foran bokstaven er like store, men med motsatt fortegn (f.eks. +2y og −2y).</p>
+<pre>I   x + 2y = 16
+II  2x − y = 7      | · 2   (nå blir −y til −2y)
+
+I   x + 2y = 16
+II  4x − 2y = 14
+I+II  5x   = 30     (y er borte!)
+      x = 6
+
+Sett x = 6 inn i I:  6 + 2y = 16  →  2y = 10  →  y = 5</pre>
+        <p>Noen ganger må begge likningene ganges. I 4x + 3y = 225 og 6x + 2y = 250 ganger vi I med −2 og II med 3. Da får vi −6y og +6y, som forsvinner.</p>
+      </details>
+
+      <details>
+        <summary>5. Likningssett – innsettingsmetoden</summary>
+        <p>Brukes når x eller y (nesten) står alene. Sett uttrykket inn i den andre likningen.</p>
+<pre>I   y = 2x
+II  x + y = 9
+
+Sett y = 2x inn i II:
+x + 2x = 9
+3x = 9
+x = 3   og   y = 2 · 3 = 6</pre>
+        <p><strong>Sjekk alltid svaret</strong> ved å sette x og y inn i begge likningene!</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="quiz" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+        <span class="subject" id="qSubject"></span>
+        <strong id="qCounter"></strong>
+      </div>
+      <div class="progress"><div id="bar"></div></div>
+      <div class="question" id="qText"></div>
+      <div class="answers" id="answers"></div>
+      <div id="explanation" class="explain hidden"></div>
+      <div class="toolbar">
+        <button id="nextBtn" class="hidden" onclick="nextQuestion()">Neste</button>
+        <button class="secondary" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="card">
+      <span class="subject" id="resultLabel">Resultat</span>
+      <h2 id="resultTitle"></h2>
+      <div class="scoreBig" id="scoreBig"></div>
+      <p id="scoreText"></p>
+      <div id="resultMessage" class="notice"></div>
+      <div class="toolbar">
+        <button onclick="restart()">Prøv igjen</button>
+        <button class="secondary" onclick="goHome()">Til forsiden</button>
+      </div>
+    </div>
+    <div id="reviewWrap"></div>
+  </section>
+
+  <footer>
+    Fremgang og feil lagres i nettleseren på denne enheten. Alle økter kan tas så mange ganger du vil.
+  </footer>
+</div>
+
+<script>
+const T_STD = "Standardform", T_ALG = "Bokstavuttrykk", T_LIK = "Likninger", T_SETT = "Likningssett";
+
+// l = nivå (1 = lett, 2 = litt vanskeligere). Spørsmålene sorteres fra lett til vanskelig i hver økt.
+const Q = [
+/* STANDARDFORM */
+{t:T_STD,l:1,q:"Hvordan ser et tall på standardform ut?",a:["Et tall mellom 1 og 10 ganget med en tierpotens","Et tall uten komma","Et tall delt på 10","Et tall med bare nuller bak"],c:0,e:"Standardform er a · 10ⁿ, der a er et tall mellom 1 og 10. For eksempel 2,34 · 10⁵."},
+{t:T_STD,l:1,q:"Hva er 10³?",a:["1000","30","100","10 000"],c:0,e:"10³ = 10 · 10 · 10 = 1000. Eksponenten forteller hvor mange nuller det blir."},
+{t:T_STD,l:1,q:"Skriv 5 000 på standardform.",a:["5 · 10³","5 · 10⁴","5 · 10²","50 · 10³"],c:0,e:"5 000 = 5 · 1000 = 5 · 10³."},
+{t:T_STD,l:1,q:"Skriv 70 000 på standardform.",a:["7 · 10⁴","7 · 10³","7 · 10²","7 · 10⁵"],c:0,e:"70 000 = 7 · 10 000 = 7 · 10⁴. Tell nullene: 4 stykker."},
+{t:T_STD,l:1,q:"Hva er 4 · 10³ skrevet som vanlig tall?",a:["4000","400","40 000","43"],c:0,e:"10³ = 1000, og 4 · 1000 = 4000."},
+{t:T_STD,l:1,q:"Hvilket tall er skrevet på standardform?",a:["4,5 · 10⁶","45 · 10⁵","0,45 · 10⁷","450 · 10⁴"],c:0,e:"Tallet foran tierpotensen må være mellom 1 og 10. Bare 4,5 passer."},
+{t:T_STD,l:2,q:"Skriv 234 000 på standardform.",a:["2,34 · 10⁵","2,34 · 10⁴","2,34 · 10⁶","23,4 · 10⁵"],c:0,e:"Flytt kommaet slik at du får et tall mellom 1 og 10: 2,34. Kommaet flyttes 5 plasser til venstre, derfor 10⁵."},
+{t:T_STD,l:2,q:"Skriv 3 600 000 på standardform.",a:["3,6 · 10⁶","3,6 · 10⁵","36 · 10⁶","3,6 · 10⁷"],c:0,e:"Kommaet flyttes 6 plasser til venstre: 3 600 000 = 3,6 · 10⁶."},
+{t:T_STD,l:2,q:"Hva er 2,5 · 10² skrevet som vanlig tall?",a:["250","25","2500","0,025"],c:0,e:"10² = 100, og 2,5 · 100 = 250. Kommaet flyttes 2 plasser til høyre."},
+{t:T_STD,l:2,q:"Skriv 0,003 på standardform.",a:["3 · 10⁻³","3 · 10³","3 · 10⁻⁴","3 · 10⁻²"],c:0,e:"Små tall får negativ eksponent. Kommaet flyttes 3 plasser til høyre for å få 3, derfor 10⁻³."},
+{t:T_STD,l:2,q:"Skriv 0,00071 på standardform.",a:["7,1 · 10⁻⁴","7,1 · 10⁴","7,1 · 10⁻⁵","7,1 · 10⁻³"],c:0,e:"Flytt kommaet 4 plasser til høyre for å få 7,1. Tallet er mindre enn 1, så eksponenten blir negativ: 7,1 · 10⁻⁴."},
+{t:T_STD,l:2,q:"Hvordan skrives 3 405 på utvidet form?",a:["3000 + 400 + 5","3000 + 400 + 50","300 + 40 + 5","3 + 4 + 0 + 5"],c:0,e:"Utvidet form viser verdien til hvert siffer: 3 tusener, 4 hundrere, 0 tiere og 5 enere."},
+
+/* BOKSTAVUTTRYKK */
+{t:T_ALG,l:1,q:"Regn ut: 3x + 5x",a:["8x","8","15x","8x²"],c:0,e:"Like ledd kan legges sammen: 3 x-er + 5 x-er = 8 x-er = 8x."},
+{t:T_ALG,l:1,q:"Regn ut: 7a − 2a",a:["5a","5","9a","5a²"],c:0,e:"7a − 2a = 5a. Tenk 7 epler minus 2 epler = 5 epler."},
+{t:T_ALG,l:1,q:"Hvilke to ledd er like ledd?",a:["3x og −5x","3x og 3y","x og x²","4 og 4a"],c:0,e:"Like ledd har nøyaktig samme bokstav (og samme eksponent). 3x og −5x har begge x."},
+{t:T_ALG,l:1,q:"Regn ut: 4x · 3",a:["12x","7x","12","43x"],c:0,e:"Gang tallene: 4 · 3 = 12. Bokstaven blir med: 12x."},
+{t:T_ALG,l:1,q:"Hvis x = 2, hva er 3x + 1?",a:["7","6","31","9"],c:0,e:"Sett inn x = 2: 3 · 2 + 1 = 6 + 1 = 7."},
+{t:T_ALG,l:1,q:"Gang ut parentesen: 3(x + 4)",a:["3x + 12","3x + 4","x + 12","3x + 7"],c:0,e:"Gang 3 med begge leddene: 3 · x = 3x og 3 · 4 = 12. Svar: 3x + 12."},
+{t:T_ALG,l:2,q:"Trekk sammen: 2x + 3y + 4x",a:["6x + 3y","9xy","9x","6x + 3"],c:0,e:"Bare x-ene kan legges sammen: 2x + 4x = 6x. 3y blir stående: 6x + 3y."},
+{t:T_ALG,l:2,q:"Trekk sammen: 5a + 2 − 3a + 4",a:["2a + 6","8a + 6","2a − 2","2a + 2"],c:0,e:"a-leddene: 5a − 3a = 2a. Tallene: 2 + 4 = 6. Svar: 2a + 6."},
+{t:T_ALG,l:2,q:"Gang ut parentesen: 2(a − 5)",a:["2a − 10","2a − 5","2a + 10","a − 10"],c:0,e:"2 · a = 2a og 2 · (−5) = −10. Svar: 2a − 10."},
+{t:T_ALG,l:2,q:"Hva blir −(x − 3)?",a:["−x + 3","−x − 3","x − 3","x + 3"],c:0,e:"Minus foran en parentes snur fortegnet på alle leddene inni: x blir −x, og −3 blir +3."},
+{t:T_ALG,l:2,q:"Regn ut: 2x · 3x",a:["6x²","5x","6x","5x²"],c:0,e:"Tallene ganges: 2 · 3 = 6. x · x = x². Svar: 6x²."},
+{t:T_ALG,l:2,q:"Forenkle: 3(2x + 1) − 2x",a:["4x + 3","6x + 1","4x + 1","8x + 3"],c:0,e:"Gang ut først: 6x + 3 − 2x. Trekk sammen x-ene: 6x − 2x = 4x. Svar: 4x + 3."},
+{t:T_ALG,l:2,q:"Hvis a = 4, hva er a² − 3?",a:["13","5","11","19"],c:0,e:"a² = 4 · 4 = 16. Så 16 − 3 = 13."},
+{t:T_ALG,l:2,q:"Forenkle: 5x − (2x + 3)",a:["3x − 3","3x + 3","7x + 3","3x"],c:0,e:"Minus foran parentesen snur fortegnene: 5x − 2x − 3. Det blir 3x − 3."},
+
+/* LIKNINGER MED ÉN UKJENT */
+{t:T_LIK,l:1,q:"Hva er den gylne regelen når du løser likninger?",a:["Gjør det samme på begge sider","Flytt alt til høyre side","Gang alltid med 2","Gjett til det stemmer"],c:0,e:"Gjør du det samme på begge sider av likhetstegnet, er likningen fortsatt i balanse."},
+{t:T_LIK,l:1,q:"Løs likningen: x + 5 = 12",a:["x = 7","x = 17","x = 5","x = 60"],c:0,e:"Trekk fra 5 på begge sider: x = 12 − 5 = 7."},
+{t:T_LIK,l:1,q:"Løs likningen: x − 4 = 10",a:["x = 14","x = 6","x = 40","x = −6"],c:0,e:"Legg til 4 på begge sider: x = 10 + 4 = 14."},
+{t:T_LIK,l:1,q:"Løs likningen: 3x = 21",a:["x = 7","x = 18","x = 24","x = 63"],c:0,e:"Del begge sider på 3: x = 21 : 3 = 7."},
+{t:T_LIK,l:1,q:"Løs likningen: x/4 = 5",a:["x = 20","x = 1,25","x = 9","x = 1"],c:0,e:"Gang begge sider med 4: x = 5 · 4 = 20."},
+{t:T_LIK,l:1,q:"Er x = 3 en løsning av 2x + 1 = 7?",a:["Ja","Nei"],c:0,e:"Sett inn x = 3: 2 · 3 + 1 = 7. Venstre side er lik høyre side, så x = 3 er riktig."},
+{t:T_LIK,l:1,q:"Du skal løse 2x + 3 = 11. Hva er lurt å gjøre først?",a:["Trekke fra 3 på begge sider","Dele på 3 på begge sider","Gange med 2 på begge sider","Legge til 11 på begge sider"],c:0,e:"Få x-leddet alene først: 2x + 3 − 3 = 11 − 3, altså 2x = 8. Deretter deler du på 2."},
+{t:T_LIK,l:2,q:"Løs likningen: 2x + 3 = 11",a:["x = 4","x = 7","x = 8","x = 5,5"],c:0,e:"2x = 11 − 3 = 8. Del på 2: x = 4."},
+{t:T_LIK,l:2,q:"Løs likningen: 5x − 2 = 13",a:["x = 3","x = 2,2","x = 15","x = 11"],c:0,e:"Legg til 2: 5x = 15. Del på 5: x = 3."},
+{t:T_LIK,l:2,q:"Løs likningen: 4x = 2x + 10",a:["x = 5","x = 10","x = 1,67","x = 2"],c:0,e:"Trekk fra 2x på begge sider: 2x = 10. Del på 2: x = 5."},
+{t:T_LIK,l:2,q:"Løs likningen: 3x + 4 = x + 12",a:["x = 4","x = 8","x = 2","x = 16"],c:0,e:"Samle x-ene: 3x − x = 12 − 4, så 2x = 8 og x = 4."},
+{t:T_LIK,l:2,q:"Løs likningen: 2(x + 3) = 14",a:["x = 4","x = 5,5","x = 7","x = 11"],c:0,e:"Gang ut: 2x + 6 = 14. Trekk fra 6: 2x = 8. Del på 2: x = 4."},
+{t:T_LIK,l:2,q:"Løs likningen: 7x − 4 = 3x + 8",a:["x = 3","x = 1","x = 4","x = 12"],c:0,e:"7x − 3x = 8 + 4, så 4x = 12 og x = 3."},
+
+/* LIKNINGSSETT */
+{t:T_SETT,l:1,q:"Hva betyr det å løse et likningssett med x og y?",a:["Finne verdier for x og y som passer i begge likningene","Finne x i den første og y i den andre likningen hver for seg","Legge sammen alle tallene","Bare finne x"],c:0,e:"Løsningen er de verdiene for x og y som gjør BEGGE likningene sanne samtidig."},
+{t:T_SETT,l:1,q:"I  x + y = 10\nII x − y = 2\n\nHva får du når du legger sammen I og II?",a:["2x = 12","2y = 12","2x = 8","x = 12"],c:0,e:"+y og −y forsvinner. x + x = 2x og 10 + 2 = 12. Altså 2x = 12."},
+{t:T_SETT,l:1,q:"I  x + y = 10\nII x − y = 2\n\nHva er løsningen?",a:["x = 6, y = 4","x = 4, y = 6","x = 5, y = 5","x = 8, y = 2"],c:0,e:"I + II gir 2x = 12, så x = 6. Sett inn i I: 6 + y = 10, så y = 4. Sjekk II: 6 − 4 = 2 ✓"},
+{t:T_SETT,l:1,q:"I  x + y = 12\nII x − y = 4\n\nHva er løsningen?",a:["x = 8, y = 4","x = 4, y = 8","x = 6, y = 6","x = 16, y = 4"],c:0,e:"I + II: 2x = 16, så x = 8. Sett inn i I: 8 + y = 12, så y = 4."},
+{t:T_SETT,l:1,q:"Er x = 2 og y = 3 en løsning av likningssettet?\n\nI  x + y = 5\nII 2x − y = 1",a:["Ja","Nei"],c:0,e:"I: 2 + 3 = 5 ✓   II: 2 · 2 − 3 = 4 − 3 = 1 ✓   Begge stemmer, så det er en løsning."},
+{t:T_SETT,l:1,q:"Hvorfor ganger vi noen ganger en likning med et tall i addisjonsmetoden?",a:["For at en bokstav skal få motsatt tall i den andre likningen og forsvinne","For at tallene skal bli større","For at svaret skal bli et helt tall","Det er bare for å sjekke svaret"],c:0,e:"Når tallene foran f.eks. y er like store med motsatt fortegn (+2y og −2y), forsvinner y når vi legger sammen."},
+{t:T_SETT,l:1,q:"I  4x − y = 5\nII x + y = 5\n\nHva får du når du legger sammen I og II?",a:["5x = 10","3x = 0","5x = 0","4x = 10"],c:0,e:"−y og +y forsvinner. 4x + x = 5x og 5 + 5 = 10. Altså 5x = 10, og x = 2."},
+{t:T_SETT,l:2,q:"I  4x − y = 5\nII x + y = 5\n\nHva er løsningen?",a:["x = 2, y = 3","x = 3, y = 2","x = 1, y = 4","x = 2, y = 5"],c:0,e:"I + II: 5x = 10, så x = 2. Sett inn i II: 2 + y = 5, så y = 3."},
+{t:T_SETT,l:2,q:"I  x + 2y = 16\nII 2x − y = 7\n\nHva bør du gange likning II med for at y skal forsvinne når du legger sammen?",a:["2","−2","7","16"],c:0,e:"I har +2y. Ganger du II med 2, blir −y til −2y. Da forsvinner y når du legger sammen I og II."},
+{t:T_SETT,l:2,q:"I  x + 2y = 16\nII 2x − y = 7\n\nHva er løsningen?",a:["x = 6, y = 5","x = 5, y = 6","x = 4, y = 6","x = 6, y = 4"],c:0,e:"II · 2: 4x − 2y = 14. I + II: 5x = 30, så x = 6. Sett inn i I: 6 + 2y = 16, så 2y = 10 og y = 5."},
+{t:T_SETT,l:2,q:"I  4x + 3y = 225\nII 6x + 2y = 250\n\nLæreren ganger I med −2 og II med 3. Hvorfor?",a:["Da får vi −6y og +6y, og y forsvinner når vi legger sammen","Da blir x-ene like","For å gjøre tallene mindre","For å finne y direkte"],c:0,e:"3y · (−2) = −6y og 2y · 3 = +6y. Like store tall med motsatt fortegn forsvinner når vi legger sammen likningene. Da får vi 10x = 300, så x = 30."},
+{t:T_SETT,l:1,q:"Innsettingsmetoden:\nI  y = 2x\nII x + y = 9\n\nHva får du når du setter I inn i II?",a:["x + 2x = 9","x + y = 2x","2x + y = 9","x = 9 − 2"],c:0,e:"Der det står y i II, skriver du 2x i stedet: x + 2x = 9."},
+{t:T_SETT,l:2,q:"I  y = 2x\nII x + y = 9\n\nHva er løsningen?",a:["x = 3, y = 6","x = 6, y = 3","x = 4,5, y = 4,5","x = 2, y = 7"],c:0,e:"x + 2x = 9 gir 3x = 9, så x = 3. Da er y = 2 · 3 = 6. Sjekk: 3 + 6 = 9 ✓"},
+{t:T_SETT,l:2,q:"I  x = y + 1\nII x + y = 7\n\nHva er løsningen?",a:["x = 4, y = 3","x = 3, y = 4","x = 5, y = 2","x = 7, y = 0"],c:0,e:"Sett x = y + 1 inn i II: y + 1 + y = 7, altså 2y = 6 og y = 3. Da er x = 3 + 1 = 4."},
+{t:T_SETT,l:2,q:"2 pølser og 1 brus koster 50 kr.\n1 pølse og 1 brus koster 35 kr.\nHva koster én pølse?",a:["15 kr","20 kr","25 kr","10 kr"],c:0,e:"I: 2p + b = 50, II: p + b = 35. Trekk II fra I: p = 15. Da er brusen 35 − 15 = 20 kr."},
+{t:T_SETT,l:1,q:"En voksenbillett koster x kr og en barnebillett y kr. 2 voksne og 3 barn betaler til sammen 500 kr. Hvilken likning passer?",a:["2x + 3y = 500","3x + 2y = 500","2x · 3y = 500","x + y = 500"],c:0,e:"2 voksenbilletter koster 2x og 3 barnebilletter koster 3y. Til sammen: 2x + 3y = 500."}
+];
+
+const SESSIONS = [
+  {id:"okt1",day:1,title:"Økt 1 – Standardform og bokstavuttrykk",desc:"Mandag: Store og små tall, like ledd og parenteser.",topics:[T_STD,T_ALG],n:10},
+  {id:"okt2",day:2,title:"Økt 2 – Likninger",desc:"Tirsdag: Løse likninger med én ukjent, og litt repetisjon av bokstavuttrykk.",topics:[T_LIK,T_ALG],n:10},
+  {id:"okt3",day:3,title:"Økt 3 – Likningssett",desc:"Onsdag: Addisjonsmetoden og innsettingsmetoden med enkle tall.",topics:[T_SETT],n:10},
+  {id:"prove",day:3,title:"Generalprøve",desc:"Onsdag kveld: 16 spørsmål fra alle temaene. Fasit og forklaring kommer til slutt, som på en ekte prøve.",topics:[T_STD,T_ALG,T_LIK,T_SETT],n:16,test:true}
+];
+
+const $ = id => document.getElementById(id);
+let session=null, items=[], idx=0, selected=null, score=0, userAnswers=[];
+
+function store(k,v){try{localStorage.setItem("mp_"+k,v);}catch(e){}}
+function load(k){try{return localStorage.getItem("mp_"+k);}catch(e){return null;}}
+function loadJSON(k,def){try{return JSON.parse(load(k))||def;}catch(e){return def;}}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+function qKey(x){ return x.t+"|"+x.q; }
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+
+// Velger like mange spørsmål fra hvert tema, og sorterer lette før vanskelige.
+function pick(topics,n){
+  const per={};
+  topics.forEach(t=>{
+    // Annenhver lett og litt vanskeligere, så økta får omtrent halvparten av hver.
+    const e=shuffle(Q.filter(x=>x.t===t&&x.l===1)), h=shuffle(Q.filter(x=>x.t===t&&x.l!==1)), mix=[];
+    while(e.length||h.length){ if(e.length) mix.push(e.shift()); if(h.length) mix.push(h.shift()); }
+    per[t]=mix;
+  });
+  const picked=[]; let r=0;
+  while(picked.length<n && r<n*topics.length){
+    const t=topics[r%topics.length];
+    if(per[t].length) picked.push(per[t].shift());
+    r++;
+  }
+  return shuffle(picked).sort((a,b)=>a.l-b.l);
+}
+
+function startSession(id){
+  session=SESSIONS.find(s=>s.id===id);
+  items=pick(session.topics,session.n);
+  begin();
+}
+function startMistakes(){
+  const keys=loadJSON("mistakes",[]);
+  const qs=Q.filter(x=>keys.indexOf(qKey(x))!==-1);
+  if(!qs.length) return;
+  session={id:"feil",title:"Øv på feil",n:Math.min(10,qs.length)};
+  items=shuffle(qs).slice(0,10).sort((a,b)=>a.l-b.l);
+  begin();
+}
+function restart(){
+  if(session.id==="feil") startMistakes(); else startSession(session.id);
+}
+function begin(){
+  idx=0; score=0; userAnswers=[];
+  show("quiz"); renderQuestion();
+}
+
+function renderQuestion(){
+  selected=null;
+  $("explanation").classList.add("hidden");
+  $("nextBtn").classList.add("hidden");
+  const x=items[idx];
+  $("qSubject").textContent=x.t;
+  $("qCounter").textContent=(idx+1)+" / "+items.length;
+  $("bar").style.width=(idx/items.length*100)+"%";
+  $("qText").textContent=x.q;
+  const box=$("answers"); box.innerHTML="";
+  shuffle(x.a.map((_,i)=>i)).forEach(ai=>{
+    const b=document.createElement("button");
+    b.className="answer"; b.dataset.ai=ai;
+    b.textContent=String.fromCharCode(65+box.children.length)+". "+x.a[ai];
+    b.onclick=()=>choose(ai);
+    box.appendChild(b);
+  });
+}
+
+function choose(i){
+  if(selected!==null) return;
+  selected=i;
+  const x=items[idx];
+  userAnswers.push(i);
+  if(i===x.c) score++;
+  const test=!!session.test;
+  [...$("answers").children].forEach(b=>{
+    const k=Number(b.dataset.ai);
+    b.disabled=true;
+    if(!test){
+      if(k===x.c) b.classList.add("correct");
+      if(k===i && i!==x.c) b.classList.add("wrong");
+    }else if(k===i) b.classList.add("selected");
+  });
+  if(!test){
+    $("explanation").innerHTML="<strong>"+(i===x.c?"Riktig! 🎉":"Ikke helt – slik løser du den:")+"</strong>\n"+escapeHtml(x.e);
+    $("explanation").classList.remove("hidden");
+  }
+  $("nextBtn").textContent= idx===items.length-1 ? "Se resultat" : "Neste";
+  $("nextBtn").classList.remove("hidden");
+}
+
+function nextQuestion(){
+  if(selected===null) return;
+  idx++;
+  if(idx>=items.length){finish();return;}
+  renderQuestion();
+}
+
+function finish(){
+  $("bar").style.width="100%";
+  // Oppdater feil-lista: legg til nye feil, fjern det som nå ble riktig.
+  const m=loadJSON("mistakes",[]);
+  items.forEach((x,i)=>{
+    const k=qKey(x), pos=m.indexOf(k);
+    if(userAnswers[i]!==x.c){ if(pos===-1) m.push(k); }
+    else if(pos!==-1) m.splice(pos,1);
+  });
+  store("mistakes",JSON.stringify(m));
+  if(session.id!=="feil"){
+    const prog=loadJSON("progress",{});
+    const prev=prog[session.id];
+    if(!prev || score/items.length>=prev.score/prev.total) prog[session.id]={score:score,total:items.length};
+    store("progress",JSON.stringify(prog));
+  }
+  renderResult();
+}
+
+function renderResult(){
+  show("result");
+  const pct=Math.round(score/items.length*100);
+  $("resultLabel").textContent=session.title;
+  $("resultTitle").textContent=session.test?"Generalprøven er ferdig":"Bra jobbet – økten er ferdig!";
+  $("scoreBig").textContent=score+"/"+items.length;
+  $("scoreText").textContent=pct+" % riktig";
+  $("resultMessage").textContent = pct>=80 ? "Kjempebra! Dette sitter godt. 🌟" :
+    pct>=60 ? "Bra! Les forklaringene på det som ble feil, og prøv en gang til." :
+    pct>=40 ? "Du er på vei! Les huskelappen for temaet og prøv igjen – det blir bedre for hver gang." :
+    "Ikke gi opp! Les huskelappen på forsiden, og ta økten en gang til. Det er helt vanlig å trenge flere runder.";
+  const wrap=$("reviewWrap"); wrap.innerHTML="";
+  items.forEach((x,i)=>{
+    const ok=userAnswers[i]===x.c;
+    const d=document.createElement("div");
+    d.className="review "+(ok?"ok":"bad");
+    d.innerHTML='<span class="pill '+(ok?"ok":"bad")+'">'+(ok?"Riktig":"Feil")+'</span> <span class="subject">'+escapeHtml(x.t)+'</span>'+
+      '<p><strong>'+(i+1)+'. '+escapeHtml(x.q)+'</strong></p>'+
+      '<p>Ditt svar: '+escapeHtml(x.a[userAnswers[i]])+'</p>'+
+      (ok?'':'<p><strong>Riktig svar:</strong> '+escapeHtml(x.a[x.c])+'</p>')+
+      '<p class="small">'+escapeHtml(x.e)+'</p>';
+    wrap.appendChild(d);
+  });
+}
+
+function show(id){
+  ["home","quiz","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function goHome(){ show("home"); renderHome(); }
+
+function renderHome(){
+  const day=new Date().getDay();
+  const prog=loadJSON("progress",{});
+  // Anbefalt økt: dagens økt hvis den ikke er tatt, ellers første som ikke er tatt.
+  let rec=SESSIONS.find(s=>s.day===day && !s.test && !prog[s.id]) || SESSIONS.find(s=>!prog[s.id]);
+  const box=$("sessionCards"); box.innerHTML="";
+  SESSIONS.forEach(s=>{
+    const p=prog[s.id];
+    const c=document.createElement("div");
+    c.className="card"+(rec===s?" recommended":"");
+    c.innerHTML=(rec===s?'<span class="tag">Neste økt</span>':'')+
+      '<h3>'+(s.test?"📝 ":"📚 ")+escapeHtml(s.title)+'</h3>'+
+      '<p class="small">'+escapeHtml(s.desc)+'</p>'+
+      (p?'<p class="done">✔ Beste resultat: '+p.score+'/'+p.total+'</p>':'')+
+      '<button onclick="startSession(\''+s.id+'\')">'+(p?"Ta igjen":"Start")+'</button>';
+    box.appendChild(c);
+  });
+  const m=loadJSON("mistakes",[]).filter(k=>Q.some(x=>qKey(x)===k));
+  $("mistakeInfo").textContent = m.length ? "Du har "+m.length+" spørsmål du har svart feil på. Når du svarer riktig på dem, forsvinner de fra lista." : "Ingen feil å øve på ennå. Spørsmål du svarer feil på, havner her.";
+  $("mistakeBtn").disabled=!m.length;
+}
+renderHome();
+</script>
+</body>
+</html>
